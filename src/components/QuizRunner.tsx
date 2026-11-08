@@ -17,6 +17,16 @@ type Props = {
 
 const zh = (s: string) => (isCJK(s) ? 'zh' : undefined);
 
+/** "治疗 · zhì liáo · to treat" → hanzi in the Chinese face, pinyin in the pinyin face. */
+function Reveal({ text }: { text: string }) {
+  const [hanzi, pinyin, ...rest] = text.split(' · ');
+  return (
+    <p className={styles.reveal}>
+      <span lang="zh">{hanzi}</span> · <span className="pinyin">{pinyin}</span> · {rest.join(' · ')}
+    </p>
+  );
+}
+
 export function QuizRunner({ questions, onAnswer, onFinish, speechRate }: Props) {
   const [index, setIndex] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
@@ -84,7 +94,7 @@ export function QuizRunner({ questions, onAnswer, onFinish, speechRate }: Props)
       {q.hint && <p className={styles.hint}>{q.hint}</p>}
       <div className={styles.choices} data-wide={wide}>
         {q.choices.map((c, i) => (
-          <button key={c} type="button" data-choice className={styles.choice} lang={zh(c)}
+          <button key={c} type="button" data-choice className={`${styles.choice}${q.kind === 'hanzi-to-pinyin' ? ' pinyin' : ''}`} lang={zh(c)}
             data-state={!answered ? 'idle' : i === q.answer ? 'right' : i === picked ? 'wrong' : 'dim'}
             onClick={() => choose(i)}>
             {c}
@@ -95,7 +105,7 @@ export function QuizRunner({ questions, onAnswer, onFinish, speechRate }: Props)
         <div className={styles.feedback} role="status">
           <div>
             <p className={styles.verdict}>{picked === q.answer ? '对了！ Correct' : `Answer: ${q.choices[q.answer]}`}</p>
-            <p className={styles.reveal} lang="zh">{q.reveal}</p>
+            <Reveal text={q.reveal} />
           </div>
           <button ref={nextRef} type="button" className="btn btn--round" onClick={next}
             aria-label={isLast ? 'See results' : 'Next question'}>

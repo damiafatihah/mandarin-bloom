@@ -19,6 +19,8 @@
   --font-latin: 'Josefin Sans', 'Noto Serif SC', system-ui, sans-serif;
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-han: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  /* Josefin lacks ǎ ǐ ǒ ǔ ǖ-ǜ entirely; pinyin always renders in Urbanist (verified full coverage). */
+  --font-pinyin: 'Urbanist', 'Noto Sans', system-ui, sans-serif;
   --font-brush: 'Zhi Mang Xing', 'Noto Serif SC', serif;
 
   --step--1: clamp(0.85rem, 0.82rem + 0.15vw, 0.95rem);

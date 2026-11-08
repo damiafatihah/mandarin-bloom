@@ -28,3 +28,11 @@ it('runs through questions with mouse and keyboard and reports the result', () =
   fireEvent.click(screen.getByRole('button', { name: 'See results' }));
   expect(onFinish).toHaveBeenCalledWith({ score: 1, total: 2, missed: ['河'] });
 });
+
+it('tone options and the revealed pinyin use the pinyin face', () => {
+  const tone: Question[] = [{ kind: 'hanzi-to-pinyin', word: '了解', instruction: 'Which tones are right?', prompt: '了解', choices: ['liǎo jiě', 'liáo jiě', 'liào jiē', 'liǎo jiè'], answer: 0, reveal: '了解 · liǎo jiě · to understand' }];
+  render(<MemoryRouter><QuizRunner questions={tone} onAnswer={() => {}} onFinish={() => {}} speechRate={0.9} /></MemoryRouter>);
+  for (const b of screen.getAllByRole('button').filter((x) => x.hasAttribute('data-choice'))) expect(b).toHaveClass('pinyin');
+  fireEvent.click(screen.getByRole('button', { name: 'liǎo jiě' }));
+  expect(screen.getByText('liǎo jiě', { selector: '.pinyin:not([data-choice])' })).toBeInTheDocument();
+});

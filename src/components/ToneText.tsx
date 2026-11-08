@@ -5,7 +5,7 @@ type Props = { pinyin: string; colored?: boolean; className?: string };
 
 export function ToneText({ pinyin, colored = true, className }: Props) {
   return (
-    <span className={className}>
+    <span className={className ? `pinyin ${className}` : 'pinyin'}>
       {pinyin.split(' ').map((syl, i) => (
         <Fragment key={i}>
           {i > 0 && ' '}

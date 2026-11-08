@@ -13,3 +13,8 @@ it('can render uncoloured', () => {
   const { container } = render(<ToneText pinyin="nǐ" colored={false} />);
   expect(container.querySelectorAll('.tone')).toHaveLength(0);
 });
+
+it('renders in the dedicated pinyin face (full caron/ü coverage)', () => {
+  const { container } = render(<ToneText pinyin="liǎo" className="big" />);
+  expect(container.firstElementChild).toHaveClass('pinyin', 'big');
+});

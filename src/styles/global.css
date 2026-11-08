@@ -29,6 +29,9 @@ html { scrollbar-color: var(--sky-deep) var(--sky); }
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
+/* Pinyin face: one font for the whole syllable so carons never fall back to a breve-looking glyph */
+.pinyin { font-family: var(--font-pinyin); font-weight: 700; letter-spacing: 0.01em; }
+
 /* Tone colours (ToneText adds .tone + data-tone) */
 .tone[data-tone='1'] { color: var(--tone-1); }
 .tone[data-tone='2'] { color: var(--tone-2); }

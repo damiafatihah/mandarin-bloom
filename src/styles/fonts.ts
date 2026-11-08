@@ -5,3 +5,5 @@ import '@fontsource/cormorant-garamond/600.css';
 import '@fontsource/noto-serif-sc/400.css';
 import '@fontsource/noto-serif-sc/600.css';
 import '@fontsource/zhi-mang-xing/400.css';
+import '@fontsource/urbanist/500.css';
+import '@fontsource/urbanist/700.css';
