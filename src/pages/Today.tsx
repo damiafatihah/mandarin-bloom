@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Link } from 'react-router';
 import type { HskWord } from '../lib/types';
 import { useStore } from '../state/store';
-import { useHsk } from '../data/resources';
-import { dateKey, streak } from '../lib/dates';
+import { useDailyDeal } from '../hooks/useDailyDeal';
+import { streak } from '../lib/dates';
 import { dayProgress, selectNewWords } from '../lib/daily';
 import { greetingFor } from '../lib/greeting';
 import { WordCard, type CardStatus } from '../components/WordCard';
@@ -18,14 +18,9 @@ const zhDate = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric',
 
 export default function Today() {
   const { state, dispatch } = useStore();
-  const { data: pool, error } = useHsk();
-  const today = dateKey();
+  const { pool, error, today } = useDailyDeal();
   const { wordsPerDay, toneColors, speechRate } = state.settings;
   const listRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (pool) dispatch({ type: 'ENSURE_DAY', today, pool });
-  }, [pool, today, wordsPerDay, dispatch]);
 
   const byS = useMemo(() => new Map((pool ?? []).map((w) => [w.s, w])), [pool]);
 

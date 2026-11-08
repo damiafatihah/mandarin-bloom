@@ -264,3 +264,17 @@ test('lowering words-per-day mid-day: goal reached now, extra cards optional, no
   for (const i of [3, 4]) await cards.nth(i).getByRole('button', { name: 'Teach me' }).click();
   await expect(page.getByRole('button', { name: 'Learn 3 more' })).toBeVisible();
 });
+
+test('raising words-per-day on Me updates the goal ring immediately', async ({ page }) => {
+  await onboard(page, '5');
+  await page.getByRole('article').first().getByRole('button', { name: 'Teach me' }).click();
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  const goal = page.getByRole('region', { name: /Today’s goal/ });
+  await expect(goal).toContainText('1 / 5 words done today');
+  for (let i = 0; i < 5; i++) await page.getByRole('button', { name: 'More words' }).click();
+  await expect(goal).toContainText('1 / 10 words done today');
+  await expect(goal).toContainText('Learn or skip 9 more words on Today.');
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await expect(page.getByRole('article')).toHaveCount(10);
+  await expect(page.getByText(/words done today/)).toHaveText('1 of 10 words done today');
+});

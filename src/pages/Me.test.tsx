@@ -1,8 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { StoreProvider } from '../state/store';
 import Me from './Me';
+
+vi.mock('../data/resources', async () => {
+  const { POOL } = await import('../test/fixtures');
+  return { useHsk: () => ({ data: POOL, error: null }), useCedict: () => ({ data: null, error: null }) };
+});
 
 function renderMe() {
   render(
@@ -77,4 +82,20 @@ it('the words-per-day note says what really happens', () => {
   expect(screen.getByText(/Changes today’s goal straight away/)).toHaveTextContent(
     'Changes today’s goal straight away. Raising it adds words now; lowering it never removes words you already have.',
   );
+});
+
+it('raising words-per-day on Me updates the goal right away (no need to visit Today first)', () => {
+  const today = dateKey();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(makeState(
+    { days: { [today]: { words: ['书', '河', '金', '近', '进'], handled: { 书: 'taught' } } } },
+    { wordsPerDay: 5, levels: [1, 2] },
+  )));
+  renderMe();
+  const goal = () => screen.getByRole('region', { name: /Today’s goal/ });
+  expect(goal()).toHaveTextContent('1 / 5 words done today');
+  for (let i = 0; i < 5; i++) fireEvent.click(screen.getByRole('button', { name: 'More words' }));
+  expect(goal()).toHaveTextContent('1 / 10 words done today');
+  expect(goal()).toHaveTextContent('Learn or skip 9 more words on Today.');
+  // the 5 extra words were really dealt for today
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).days[today].words).toHaveLength(10);
 });

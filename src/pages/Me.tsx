@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Settings } from '../lib/types';
 import { useStore } from '../state/store';
-import { dateKey, streak } from '../lib/dates';
+import { streak } from '../lib/dates';
 import { MASTERED_BOX } from '../lib/srs';
 import { speak, speechSupported } from '../lib/speech';
 import { LevelPicker } from '../components/LevelPicker';
@@ -11,11 +11,12 @@ import { Info } from '../components/icons';
 import { PageHeader } from '../components/PageHeader';
 import { Seal } from '../components/Seal';
 import { dayProgress, goalSummary } from '../lib/daily';
+import { useDailyDeal } from '../hooks/useDailyDeal';
 import styles from './Me.module.css';
 
 export default function Me() {
   const { state, dispatch } = useStore();
-  const today = dateKey();
+  const { today } = useDailyDeal();
   const cards = Object.values(state.cards);
   const set = (patch: Partial<Settings>) => dispatch({ type: 'UPDATE_SETTINGS', patch });
   const [open, setOpen] = useState<string | null>(null);
