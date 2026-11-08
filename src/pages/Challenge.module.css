@@ -1,0 +1,7 @@
+.intro {
+  position: relative; overflow: hidden; display: grid; gap: 18px; justify-items: start;
+  max-width: 640px; margin-inline: auto; padding: 120px clamp(20px, 5vw, 40px) 40px;
+  background: var(--paper); border-radius: var(--radius-card);
+}
+.mist { position: absolute; inset: 0 0 auto 0; width: 100%; height: 160px; pointer-events: none; }
+.intro > :not(.mist) { position: relative; }

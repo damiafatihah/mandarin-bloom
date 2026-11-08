@@ -1,0 +1,36 @@
+.page { display: grid; gap: 28px; }
+.header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.date { font-family: var(--font-serif); font-style: italic; font-size: var(--step-1); color: var(--ink-2); }
+.title { margin-top: 4px; }
+.streak { color: var(--ink-2); text-align: right; }
+.streak strong { display: block; font-size: var(--step-2); color: var(--gold); line-height: 1; }
+.wordsSection { display: grid; gap: 12px; min-width: 0; }
+.words {
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(82vw, 340px); gap: 16px;
+  overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  margin-inline: calc(var(--gutter) * -1); padding: 0 var(--gutter) 8px; scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+}
+.words > * { scroll-snap-align: start; }
+.nudge { color: var(--ink-2); }
+.aside { display: grid; gap: 16px; align-content: start; }
+.challenge {
+  position: relative; overflow: hidden; display: grid; gap: 12px;
+  padding: 24px 24px 72px; border-radius: var(--radius-card);
+  background: var(--lake-deep); color: #fff;
+}
+.waves { position: absolute; inset: auto 0 0 0; width: 100%; height: 64px; color: var(--lake); }
+.cta, .done, .row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.panel { display: grid; gap: 12px; padding: 22px 24px; background: var(--paper); border-radius: var(--radius-card); }
+
+@media (min-width: 768px) {
+  .words {
+    grid-auto-flow: row; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    overflow: visible; margin-inline: 0; padding: 0;
+  }
+}
+@media (min-width: 1024px) {
+  .page { grid-template-columns: minmax(0, 1fr) 340px; column-gap: 32px; align-items: start; }
+  .header { grid-column: 1 / -1; }
+  .aside { position: sticky; top: 40px; }
+}
