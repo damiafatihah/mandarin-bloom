@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function expectNoHorizontalOverflow(page: Page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  const overflow = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth) - window.screen.width);
   expect(overflow).toBeLessThanOrEqual(0);
 }
 

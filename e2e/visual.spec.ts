@@ -8,7 +8,7 @@ const settle = (page: Page) => page.waitForTimeout(800);
 
 async function snap(page: Page, project: string, name: string) {
   await settle(page);
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  const overflow = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth) - window.screen.width);
   expect(overflow, `${name} overflow`).toBeLessThanOrEqual(0);
   await page.screenshot({ path: `e2e/screens/visual-${project}-${name}.png`, fullPage: false });
 }

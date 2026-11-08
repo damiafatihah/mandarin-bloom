@@ -21,7 +21,7 @@ async function onboard(page: Page, perDay = '5') {
 }
 
 async function noOverflow(page: Page) {
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  const overflow = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, window.innerWidth) - window.screen.width);
   expect(overflow, 'horizontal overflow').toBeLessThanOrEqual(0);
 }
 
@@ -157,6 +157,9 @@ test('me: settings persist and change today; reset keeps settings', async ({ pag
   await page.getByRole('button', { name: 'More words' }).click();
   await page.getByRole('button', { name: 'More words' }).click();
   await page.getByLabel('Colour pinyin by tone').uncheck();
+  // Voices load asynchronously and add the voice picker; the page must still fit the screen afterwards.
+  await page.waitForFunction(() => speechSynthesis.getVoices().length > 0 || performance.now() > 4000);
+  await page.waitForTimeout(300);
   await shot(page, info.project.name, 'deep-me');
   await noOverflow(page);
   await page.getByRole('link', { name: /Today/ }).first().click();
