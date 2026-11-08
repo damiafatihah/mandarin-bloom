@@ -22,6 +22,14 @@ test('accessibility: all screens', async ({ page }, info) => {
   await audit(page, 'today');
   await page.getByRole('article').first().getByRole('button', { name: 'Teach me' }).click();
   await audit(page, 'today-revealed');
+  const cards = page.getByRole('article');
+  await cards.nth(1).getByRole('button', { name: 'I know it' }).click();
+  await audit(page, 'today-progress');
+  const n = await cards.count();
+  for (let i = 2; i < n; i++) await cards.nth(i).getByRole('button', { name: i % 2 ? 'I know it' : 'Teach me' }).click();
+  await expect(page.getByRole('region', { name: /Daily goal done/ })).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await audit(page, 'today-goal');
 
   await page.goto('/challenge');
   await audit(page, 'challenge-intro');
@@ -46,4 +54,6 @@ test('accessibility: all screens', async ({ page }, info) => {
   await audit(page, 'word');
   await page.goto('/me');
   await audit(page, 'me');
+  await page.getByRole('button', { name: 'What does “Mastered” mean?' }).click();
+  await audit(page, 'me-info');
 });

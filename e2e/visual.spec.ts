@@ -25,6 +25,14 @@ test('visual tour', async ({ page }, info) => {
   await expect(page.getByRole('article').first()).toBeVisible();
   await page.getByRole('article').first().getByRole('button', { name: 'Teach me' }).click();
   await snap(page, p, '04-today');
+  const cards = page.getByRole('article');
+  await cards.nth(1).getByRole('button', { name: 'I know it' }).click();
+  await snap(page, p, '04b-today-progress');
+  const n = await cards.count();
+  for (let i = 2; i < n; i++) await cards.nth(i).getByRole('button', { name: i % 2 ? 'I know it' : 'Teach me' }).click();
+  await expect(page.getByRole('region', { name: /Daily goal done/ })).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await snap(page, p, '04c-today-goal');
 
   await page.goto('/challenge');
   await snap(page, p, '05-challenge-intro');
@@ -55,4 +63,6 @@ test('visual tour', async ({ page }, info) => {
   await snap(page, p, '14-word-polyphone');
   await page.goto('/me');
   await snap(page, p, '15-me');
+  await page.getByRole('button', { name: 'What does “Mastered” mean?' }).click();
+  await snap(page, p, '16-me-info');
 });

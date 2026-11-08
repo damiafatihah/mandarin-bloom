@@ -28,33 +28,88 @@ async function noOverflow(page: Page) {
 const shot = (page: Page, project: string, name: string) =>
   page.screenshot({ path: `e2e/screens/${project}-${name}.png`, fullPage: false });
 
-test('word cards: teach me reveals, I know it refills, progress survives reload', async ({ page }, info) => {
+test('daily goal: both choices count, cards stay put, goal panel, optional learn-more, survives reload', async ({ page }, info) => {
   const errors = watchErrors(page);
   await onboard(page, '5');
   const cards = page.getByRole('article');
+  const bar = page.getByRole('progressbar', { name: 'Today’s words' });
   await expect(cards).toHaveCount(5);
+  await expect(bar).toHaveAttribute('aria-valuenow', '0');
   const before = await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
 
-  // Reveal the first card
-  await cards.first().getByRole('button', { name: 'Teach me' }).click();
-  await expect(cards.first().getByRole('link', { name: /More about/ })).toBeVisible();
-  await expect(cards.first().locator('[data-tone]').first()).toBeVisible();
+  // Teach me → stays open, labelled Learned, counts 1
+  await cards.nth(0).getByRole('button', { name: 'Teach me' }).click();
+  await expect(cards.nth(0).getByText('Learned')).toBeVisible();
+  await expect(cards.nth(0).getByRole('link', { name: /More about/ })).toBeVisible();
+  await expect(bar).toHaveAttribute('aria-valuenow', '1');
 
-  // Mark the second as known → it disappears and a new word takes the 5th slot
+  // I know it → stays, labelled Already knew, counts 2; nothing new pops in
   await cards.nth(1).getByRole('button', { name: 'I know it' }).click();
-  await expect(cards).toHaveCount(5);
-  const after = await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
-  expect(after).not.toContain(before[1]);
-  expect(new Set(after).size).toBe(5);
+  await expect(cards.nth(1).getByText('Already knew')).toBeVisible();
+  await expect(bar).toHaveAttribute('aria-valuenow', '2');
+  expect(await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(before);
+  await expect(page.getByText(/words done today/)).toHaveText('2 of 5 words done today');
+  await shot(page, info.project.name, 'deep-today-progress');
 
-  // Reload: same words (persisted), still 5
-  await page.reload();
-  await expect(page.getByRole('article')).toHaveCount(5);
-  const reloaded = await page.getByRole('article').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
-  expect(reloaded).toEqual(after);
+  // Undo a misclick
+  await cards.nth(1).getByRole('button', { name: /^Undo/ }).click();
+  await expect(bar).toHaveAttribute('aria-valuenow', '1');
+  await cards.nth(1).getByRole('button', { name: 'I know it' }).click();
+
+  // Finish the rest (scrolling the phone carousel as needed)
+  for (const i of [2, 3, 4]) await cards.nth(i).getByRole('button', { name: i % 2 ? 'I know it' : 'Teach me' }).click();
+  const done = page.getByRole('region', { name: /Daily goal done/ });
+  await expect(done).toBeVisible();
+  await expect(done).toContainText('5 words today');
+  await expect(done).toContainText('3 learned · 2 already knew');
+  await expect(done).toContainText('optional');
   await noOverflow(page);
-  await shot(page, info.project.name, 'deep-today');
+  await shot(page, info.project.name, 'deep-today-goal');
+
+  // Reload keeps everything
+  await page.reload();
+  await expect(page.getByRole('progressbar', { name: 'Today’s words' })).toHaveAttribute('aria-valuenow', '5');
+  await expect(page.getByRole('region', { name: /Daily goal done/ })).toBeVisible();
+
+  // Optional extra words
+  await page.getByRole('button', { name: 'Learn 5 more' }).click();
+  await expect(cards).toHaveCount(10);
+  await expect(page.getByText(/words done today/)).toHaveText('5 of 10 words done today');
+  await expect(page.getByText(/Daily goal of 5 done/)).toBeVisible();
+  await noOverflow(page);
+
+  // Me: only the 3 "Teach me" words are in review; the 2 "I know it" words are under Already knew
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  await expect(page.locator('dd').nth(1)).toHaveText('3');
+  await expect(page.locator('dd').nth(3)).toHaveText('2');
   expect(errors).toEqual([]);
+});
+
+test('phone: after a choice the carousel glides to the next undecided card', async ({ page }, info) => {
+  test.skip(info.project.name !== 'phone');
+  await onboard(page, '5');
+  const list = page.locator('section[aria-label="Today’s word cards"] > div').last();
+  const scrollX = () => list.evaluate((el) => el.scrollLeft);
+  expect(await scrollX()).toBe(0);
+  await page.getByRole('article').first().getByRole('button', { name: 'Teach me' }).click();
+  await expect.poll(scrollX).toBeGreaterThan(100);
+  const second = page.getByRole('article').nth(1);
+  await expect(second).toBeInViewport({ ratio: 0.9 });
+});
+
+test('me: info buttons explain each number', async ({ page }, info) => {
+  await onboard(page);
+  await page.goto('/me');
+  for (const label of ['Day streak', 'Words in review', 'Mastered', 'Already knew']) {
+    const btn = page.getByRole('button', { name: `What does “${label}” mean?` });
+    await btn.click();
+    await expect(btn).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('region', { name: label })).toBeVisible();
+  }
+  await noOverflow(page);
+  await shot(page, info.project.name, 'deep-me-info');
+  await page.getByRole('button', { name: 'What does “Already knew” mean?' }).click();
+  await expect(page.getByRole('region', { name: 'Already knew' })).toBeHidden();
 });
 
 test('full daily challenge: 10 questions → seal → Today shows done + calendar seal', async ({ page }, info) => {
