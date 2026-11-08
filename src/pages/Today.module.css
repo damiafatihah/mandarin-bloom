@@ -2,7 +2,7 @@
 .header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .date { font-family: var(--font-serif); font-style: italic; font-size: var(--step-1); color: var(--ink-2); }
 .title { margin-top: 4px; }
-.streak { color: var(--ink-2); text-align: right; }
+.streak { flex: none; color: var(--ink-2); text-align: right; white-space: nowrap; }
 .streak strong { display: block; font-size: var(--step-2); color: var(--gold); line-height: 1; }
 .wordsSection { display: grid; gap: 12px; min-width: 0; }
 .words {

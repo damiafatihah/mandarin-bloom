@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MANUAL_MEANINGS, convertCedict, convertHsk, fillMeaningsFromCedict } from './convert.ts';
+import { MANUAL_MEANINGS, convertCedict, convertHsk, fillMeaningsFromCedict, tidyRefs } from './convert.ts';
 
 describe('convertHsk', () => {
   it('keeps new-HSK words, takes the lowest new level and first form, dedupes', () => {
@@ -137,5 +137,28 @@ describe('function-word flag', () => {
       { s: '岸', l: ['n4'], q: 5, f: [{ t: '岸', i: { y: 'àn', n: 'an4' }, m: ['shore'], c: [] }] },
     ]);
     expect(out.map((w) => [w.s, w.fn])).toEqual([['却', true], ['担心', false], ['杀', false], ['甚至', false], ['岸', false]]);
+  });
+});
+
+describe('tidyRefs (simplified only, readable pinyin)', () => {
+  it.each([
+    ['used with 得[de2] or 不[bu4]', 'used with 得 (dé) or 不 (bù)'],
+    ['such as 無|无[wu2]', 'such as 无 (wú)'],
+    ['as in 忘不了[wang4 bu5 liao3] "cannot forget"', 'as in 忘不了 (wàng bu liǎo) "cannot forget"'],
+    ['variant of 瞭|了[liao3]', 'variant of 了 (liǎo)'],
+    ['see 自個兒|自个儿[zi4 ge3 r5]', 'see 自个儿 (zì gě r)'],
+    ['no refs here', 'no refs here'],
+    ['also pr. [pou1]', 'also pr. pōu'],
+    ['also pr. [shang4zai4]', 'also pr. shàng zài'],
+    ['also pr. [yi1mo2-yi1yang4]', 'also pr. yī mó yī yàng'],
+    ['see 3C[san1 C]', 'see 3C sān C'],
+    ['variant of 〇[ling2]', 'variant of 〇 (líng)'],
+  ])('%s', (input, expected) => {
+    expect(tidyRefs(input)).toBe(expected);
+  });
+  it('is applied to CEDICT output and HSK meanings', () => {
+    expect(convertCedict('了 了 [liao3] /used with 得[de2]/')).toBe('了\t了\tliǎo\tliao\tused with 得 (dé)');
+    const w = convertHsk([{ s: '了', l: ['n1'], q: 1, f: [{ t: '了', i: { y: 'le', n: 'le5' }, m: ['like 無|无[wu2]'], c: [] }] }])[0];
+    expect(w.m).toEqual(['like 无 (wú)']);
   });
 });

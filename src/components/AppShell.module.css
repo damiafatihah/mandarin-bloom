@@ -21,7 +21,7 @@
 .tab[aria-current='page'] { color: var(--ink); font-weight: 700; }
 .tab[aria-current='page'] .tabHan {
   background: var(--cinnabar); color: #fff; border-radius: 7px; transform: rotate(-4deg);
-  font-family: var(--font-brush);
+  font-weight: 600;
 }
 
 @media (min-width: 1024px) {

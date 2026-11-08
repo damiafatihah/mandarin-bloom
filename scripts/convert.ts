@@ -24,7 +24,18 @@ const POINTER = /^(see( also)?|used in|abbr\.? for|surname|CL:)\b|^\([^)]*[\u340
 const isJunk = (m: string) => isVariant(m) || POINTER.test(m);
 
 /** CEDICT shorthand → plain English for learners. */
-export const expandAbbrev = (m: string) => m.replace(/\bsth\b/g, 'something').replace(/\bsb\b/g, 'someone');
+const expandAbbrev = (m: string) => m.replace(/\bsth\b/g, 'something').replace(/\bsb\b/g, 'someone');
+
+/** CEDICT cross-refs "無|无[wu2]" → "无 (wú)": simplified only, tone-marked pinyin. */
+const refPinyin = (py: string) => numericToMarks(py.replace(/-/g, ' ').replace(/([1-5])(?=[a-zA-Z])/g, '$1 '));
+
+export const tidyRefs = (m: string) =>
+  m
+    .replace(/(?:[\u3007\u3400-\u9fff]+\|)?([\u3007\u3400-\u9fff]+)\[([^\]]+)\]/g, (_, simp: string, py: string) => `${simp} (${refPinyin(py)})`)
+    .replace(/ ?\[([a-zA-Z:]+[1-5][a-zA-Z0-9: -]*)\]/g, (_, py: string) => ` ${refPinyin(py)}`);
+
+/** Everything a learner reads in a meaning goes through here. */
+export const tidyMeaning = (m: string) => tidyRefs(expandAbbrev(m));
 
 /** Grammatical parts of speech (conjunction, preposition, particle, pronoun, adverb, measure word…). */
 const FUNCTION_POS = new Set(['c', 'cc', 'p', 'u', 'y', 'e', 'r', 'q', 'm', 'd', 'f']);
@@ -46,7 +57,7 @@ export function convertHsk(raw: RawHsk[]): HskWord[] {
       common[0] ?? r.f[0];
     const meanings = f.m.filter((m) => !isVariant(m) && !/^\(Note:/i.test(m));
     out.push({
-      s: r.s, t: f.t, ...cleanPinyin(f.i.y, f.i.n), m: (meanings.length ? meanings : f.m).map(expandAbbrev),
+      s: r.s, t: f.t, ...cleanPinyin(f.i.y, f.i.n), m: (meanings.length ? meanings : f.m).map(tidyMeaning),
       l: Math.min(...levels), q: r.q, c: f.c ?? [], poly: r.f.length > 1, fn: isFunctionWord(r),
     });
   }
@@ -65,7 +76,7 @@ export function convertCedict(text: string): string {
     const [, trad, simp, numeric, defs] = m;
     const meanings = defs.split('/').filter(Boolean);
     if (meanings.every(isVariant)) continue;
-    rows.push([simp, trad, numericToMarks(numeric), normalizePinyin(numeric), meanings.map(expandAbbrev).join('/')].join('\t'));
+    rows.push([simp, trad, numericToMarks(numeric), normalizePinyin(numeric), meanings.map(tidyMeaning).join('/')].join('\t'));
   }
   return rows.join('\n');
 }
