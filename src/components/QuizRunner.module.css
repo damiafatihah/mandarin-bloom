@@ -23,7 +23,7 @@
 .choice:active { transform: scale(0.98); }
 .choice[data-state='right'] { background: var(--lake-deep); color: #fff; }
 .choice[data-state='wrong'] { background: var(--cinnabar); color: #fff; animation: shake 0.3s; }
-.choice[data-state='dim'] { opacity: 0.45; }
+.choice[data-state='dim'] { background: #eef6fc; color: var(--ink-2); }
 .feedback { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .verdict { font-weight: 700; }
 .reveal { color: var(--ink-2); }
