@@ -28,6 +28,7 @@ export type Settings = {
   levels: number[];
   toneColors: boolean;
   speechRate: number;
+  voiceName: string; // '' = automatic (browser default Chinese voice)
 };
 
 export type DayRecord = {

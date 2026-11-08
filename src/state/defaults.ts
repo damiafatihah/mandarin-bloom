@@ -5,6 +5,7 @@ export const DEFAULT_SETTINGS: Settings = {
   levels: [4, 5],
   toneColors: true,
   speechRate: 0.9,
+  voiceName: '',
 };
 
 export const initialState: AppState = {

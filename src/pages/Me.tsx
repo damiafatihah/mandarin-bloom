@@ -5,6 +5,7 @@ import { MASTERED_BOX } from '../lib/srs';
 import { speak, speechSupported } from '../lib/speech';
 import { LevelPicker } from '../components/LevelPicker';
 import { WordsPerDayPicker } from '../components/WordsPerDayPicker';
+import { VoicePicker } from '../components/VoicePicker';
 import styles from './Me.module.css';
 
 export default function Me() {
@@ -45,6 +46,9 @@ export default function Me() {
           <input type="checkbox" checked={state.settings.toneColors} onChange={(e) => set({ toneColors: e.target.checked })} />
           Colour pinyin by tone
         </label>
+        {speechSupported() && (
+          <VoicePicker value={state.settings.voiceName} rate={state.settings.speechRate} onChange={(voiceName) => set({ voiceName })} />
+        )}
         {speechSupported() && (
           <div className={styles.range}>
             <label htmlFor="rate">Voice speed {state.settings.speechRate.toFixed(1)}×</label>
