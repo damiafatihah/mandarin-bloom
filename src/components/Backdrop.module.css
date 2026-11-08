@@ -1,0 +1,2 @@
+.backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.hills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: min(34vh, 300px); }

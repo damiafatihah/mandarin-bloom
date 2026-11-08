@@ -88,7 +88,7 @@ test('daily goal: both choices count, cards stay put, goal panel, optional learn
 test('phone: after a choice the carousel glides to the next undecided card', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone');
   await onboard(page, '5');
-  const list = page.locator('section[aria-label="Today’s word cards"] > div').last();
+  const list = page.locator('[data-carousel]');
   const scrollX = () => list.evaluate((el) => el.scrollLeft);
   expect(await scrollX()).toBe(0);
   await page.getByRole('article').first().getByRole('button', { name: 'Teach me' }).click();
@@ -115,7 +115,7 @@ test('me: info buttons explain each number', async ({ page }, info) => {
 test('full daily challenge: 10 questions → seal → Today shows done + calendar seal', async ({ page }, info) => {
   const errors = watchErrors(page);
   await onboard(page);
-  await page.getByRole('link', { name: 'Start the challenge' }).click();
+  await page.getByRole('link', { name: /Daily challenge/ }).click();
   await page.getByRole('button', { name: 'Begin' }).click();
 
   for (let i = 0; i < 10; i++) {
@@ -137,7 +137,7 @@ test('full daily challenge: 10 questions → seal → Today shows done + calenda
   await expect(page.getByRole('heading', { name: /每日挑战 complete/ })).toBeVisible();
 
   await page.goto('/');
-  await expect(page.getByText(/Done: \d+\/10/)).toBeVisible();
+  await expect(page.getByText(/done \d+\/10/)).toBeVisible();
   await expect(page.getByRole('img', { name: /challenge done/ })).toHaveCount(1);
   await noOverflow(page);
   expect(errors).toEqual([]);

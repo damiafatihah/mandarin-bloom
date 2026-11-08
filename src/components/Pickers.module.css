@@ -1,16 +1,17 @@
 .levels { display: grid; gap: 10px; }
 .level {
   display: grid; gap: 2px; text-align: left; padding: 14px 18px; min-height: 64px;
-  border: 0; border-radius: 18px; background: var(--sky); cursor: pointer;
-  transition: background-color 0.2s var(--ease), color 0.2s var(--ease);
+  border: 0; border-radius: 18px; background: var(--paper); cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: background-color 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
-.level:hover { background: var(--sky-deep); }
-.level[aria-pressed='true'] { background: var(--lake-deep); color: #fff; }
+.level:hover { box-shadow: inset 0 0 0 1.5px var(--brand-2); background: var(--brand-soft); }
+.level[aria-pressed='true'] { background: var(--brand); color: #fff; box-shadow: none; }
 .levelLabel { font-weight: 700; }
 .levelNote { font-size: var(--step--1); opacity: 0.85; }
 .perDay { display: grid; gap: 16px; justify-items: center; }
 .stepper { display: flex; align-items: center; gap: 18px; }
-.stepper .btn--round, .stepper button { font-size: 1.6rem; }
-.count { text-align: center; color: var(--ink-2); }
-.count strong { display: block; font-size: var(--step-3); color: var(--ink); line-height: 1; }
+.stepper button { font-size: 1.6rem; }
+.count { text-align: center; color: var(--ink-2); font-weight: 600; }
+.count strong { display: block; font-size: 2.5rem; color: var(--ink); line-height: 1; font-variant-numeric: tabular-nums; }
 .presets { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }

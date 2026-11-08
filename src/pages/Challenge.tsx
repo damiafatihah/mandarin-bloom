@@ -9,7 +9,7 @@ import { speechSupported } from '../lib/speech';
 import { QuizRunner, type QuizResult } from '../components/QuizRunner';
 import { QuizResultView } from '../components/QuizResultView';
 import { Loading, LoadError } from '../components/Status';
-import { InkMist } from '../components/InkMist';
+import { Landscape } from '../components/art/Scenery';
 import styles from './Challenge.module.css';
 
 export default function Challenge() {
@@ -43,9 +43,17 @@ export default function Challenge() {
   if (!playing) {
     return (
       <section className={styles.intro} aria-labelledby="ch-h">
-        <InkMist className={styles.mist} />
-        <h1 id="ch-h"><span lang="zh">每日挑战</span> Daily challenge</h1>
-        <p>Ten questions built from today’s words, your due reviews and a few surprises from your levels. Anything you miss joins your reviews.</p>
+        <Landscape variant="wide" seed="challenge" pagoda sun birds pagodaRange={[0.42, 0.58]} sunX={0.6} className={`${styles.art} fade-bottom`} />
+        <h1 id="ch-h" className={styles.title}>
+          <span className={styles.titleZh} lang="zh">每日挑战</span>
+          <span className={styles.titleEn}>Daily challenge</span>
+        </h1>
+        <p className={styles.lead}>Ten questions built from today’s words, your due reviews and a few surprises from your levels. Anything you miss joins your reviews.</p>
+        <ul className={styles.facts}>
+          <li className="tag">10 questions</li>
+          <li className="tag">Tones · meanings · listening</li>
+          <li className="tag">About 3 minutes</li>
+        </ul>
         <button type="button" className="btn btn--primary" onClick={() => {
           if (!words) dispatch({ type: 'START_CHALLENGE', today, words: buildChallengeWords(pool, state, today) });
           setPlaying(true);

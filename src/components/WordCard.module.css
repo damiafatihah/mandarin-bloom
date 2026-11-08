@@ -1,35 +1,48 @@
 .card {
   container-type: inline-size;
-  position: relative; overflow: hidden;
-  display: grid; align-content: start; justify-items: center; gap: 12px;
-  min-height: 380px; padding: 22px 22px 24px;
-  background: var(--paper); border-radius: var(--radius-card); text-align: center;
+  position: relative; overflow: hidden; isolation: isolate;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 300px; padding: 20px 22px 22px;
+  background: var(--paper); border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease), background-color 0.25s var(--ease);
 }
-.mist { position: absolute; inset: 0 0 auto 0; width: 100%; height: 150px; pointer-events: none; }
-.top { position: relative; justify-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.level { font-family: var(--font-serif); font-style: italic; color: var(--ink-2); }
-.tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: var(--step--1); font-weight: 700; color: var(--lake-deep);
+.card:hover { box-shadow: var(--shadow-lift); }
+.hills { position: absolute; z-index: -1; right: 0; bottom: 0; width: 100%; max-width: 440px; height: 110px; opacity: 0.9; pointer-events: none; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+.state { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; color: var(--brand); white-space: nowrap; }
+.stateKnown { color: var(--ink-2); }
+
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.hanzi {
+  min-width: 0; white-space: nowrap;
+  font-family: var(--font-han); font-weight: 600; line-height: 1.1; letter-spacing: 0.06em;
+  /* fill the space left of the 48px speaker without ever wrapping */
+  font-size: min(var(--han-xl), calc((100cqi - 64px) / (var(--len) * 1.12)));
 }
-.tagKnown { color: var(--ink-2); }
+.pinyin { font-size: var(--step-2); }
+.prompt { margin-top: auto; color: var(--ink-2); font-size: var(--step--1); }
+.actions { display: grid; grid-template-columns: 1fr 1.25fr; gap: 10px; max-width: 420px; }
+@container (max-width: 268px) { .actions { grid-template-columns: 1fr; } }
+.actions :global(.btn) { padding-inline: 0.9em; }
+
+.back { display: grid; gap: 8px; align-content: start; }
+.meanings { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: var(--step-0); }
+.meanings li:first-child { font-size: var(--step-1); font-weight: 700; }
+.mw { color: var(--ink-2); font-size: var(--step--1); }
+.mwHan { font-family: var(--font-han); color: var(--ink); font-weight: 600; }
+.more {
+  display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 44px;
+  font-weight: 700; text-decoration: none;
+}
+.more:hover { text-decoration: underline; }
+
 /* "I know it" cards recede: done, but still readable */
-.card[data-status='known'] { background: #eef6fc; }
+.card[data-status='known'] { background: #f2f7fc; box-shadow: none; }
 .card[data-status='known'] .hanzi { color: var(--ink-2); }
 .knownMeaning { color: var(--ink-2); }
 .undo {
-  min-height: 44px; padding: 0 14px; border: 0; background: none; cursor: pointer;
-  color: var(--lake-deep); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+  justify-self: start; min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--brand); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
 }
-.hanzi {
-  position: relative; margin-top: 28px;
-  font-family: var(--font-han); font-weight: 600; line-height: 1.1; letter-spacing: 0.04em;
-  font-size: min(var(--han-xl), calc(80cqi / var(--len)));
-}
-.sound { position: relative; display: flex; align-items: center; gap: 12px; min-height: 48px; }
-.pinyin { font-size: var(--step-1); font-weight: 700; }
-.back { display: grid; gap: 8px; justify-items: center; }
-.meanings { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
-.mw { color: var(--ink-2); font-size: var(--step--1); }
-.more { font-weight: 700; margin-top: 4px; }
-.actions { margin-top: auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.undo:hover { color: var(--brand-hover); }

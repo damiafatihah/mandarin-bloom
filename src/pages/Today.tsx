@@ -5,11 +5,12 @@ import { useStore } from '../state/store';
 import { useHsk } from '../data/resources';
 import { dateKey, streak } from '../lib/dates';
 import { dayProgress, selectNewWords } from '../lib/daily';
+import { greetingFor } from '../lib/greeting';
 import { WordCard, type CardStatus } from '../components/WordCard';
 import { SealCalendar } from '../components/SealCalendar';
 import { Seal } from '../components/Seal';
-import { Waves } from '../components/Waves';
-import { Check, Play } from '../components/icons';
+import { Landscape } from '../components/art/Scenery';
+import { Check, ChevronRight, Flame } from '../components/icons';
 import { Loading, LoadError } from '../components/Status';
 import styles from './Today.module.css';
 
@@ -31,6 +32,8 @@ export default function Today() {
   if (error) return <LoadError error={error} />;
   if (!pool) return <Loading label="Opening today’s page…" />;
 
+  const now = new Date();
+  const hello = greetingFor(now.getHours());
   const day = state.days[today];
   const words = (day?.words ?? []).map((s) => byS.get(s)).filter((w): w is HskWord => !!w);
   const statusOf = (s: string): CardStatus => day?.handled?.[s] ?? 'new';
@@ -57,38 +60,42 @@ export default function Today() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div>
-          <p className={styles.date} lang="zh">{zhDate.format(new Date())}</p>
-          <h1 className={styles.title}><span lang="zh">今日</span> Today’s words</h1>
+      <header className={styles.hero}>
+        <Landscape variant="header" seed="today" pagoda sun birds className={styles.heroArt} />
+        <div className={styles.heroText}>
+          <p className={styles.date} lang="zh">{zhDate.format(now)}</p>
+          <h1 className={styles.greeting} lang="zh">{hello.zh}，<br />今天也要加油哦！</h1>
+          <p className={styles.greetingEn}>{hello.en}. A little Mandarin every day.</p>
         </div>
         {streakDays > 0 && (
-          <p className={styles.streak}><strong>{streakDays}</strong> day streak</p>
+          <p className={styles.streak}><Flame /><strong className="num">{streakDays}</strong> day streak</p>
         )}
       </header>
 
       <section className={styles.wordsSection} aria-label="Today’s word cards">
-        <div className={styles.progress}>
+        <div className={styles.sectionHead}>
+          <h2><span className="zh-title" lang="zh">今日新词</span> <span className="en-sub">Today’s words</span></h2>
           <p className={styles.progressText} aria-live="polite">
-            <strong>{progress.done}</strong> of {progress.total} words done today
+            <strong className="num">{progress.done}</strong> of {progress.total} words done today
           </p>
-          <div className={styles.bar} role="progressbar" aria-label="Today’s words"
-            aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.done}>
-            {words.map((w) => <span key={w.s} data-state={statusOf(w.s)} />)}
-          </div>
-          {progress.goalMet && !allDone && (
-            <p className={styles.hint}><Check /> Daily goal of {progress.goal} done · these extra words are optional</p>
-          )}
-          {!progress.goalMet && (
-            <p className={styles.hint}>Tap <b>Teach me</b> to learn a word, or <b>I know it</b> to skip it. Both count.</p>
-          )}
         </div>
+        <div className={styles.bar} role="progressbar" aria-label="Today’s words"
+          aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.done}>
+          {words.map((w) => <span key={w.s} data-state={statusOf(w.s)} />)}
+        </div>
+        {progress.goalMet && !allDone && (
+          <p className={styles.hint}><Check /> Daily goal of {progress.goal} done · these extra words are optional</p>
+        )}
+        {!progress.goalMet && (
+          <p className={styles.hint}>Tap <b>Teach me</b> to learn a word, or <b>I know it</b> to skip it. Both count.</p>
+        )}
 
         {allDone && (
           <section className={styles.goalDone} aria-labelledby="goal-done-h">
-            <Seal text="完" size={64} title="Daily goal done" stamp />
+            <Landscape variant="card" seed="goal" className={styles.goalHills} />
+            <Seal text="完" size={60} title="Daily goal done" stamp />
             <div className={styles.goalBody}>
-              <h2 id="goal-done-h"><span lang="zh">今日完成</span> Daily goal done</h2>
+              <h2 id="goal-done-h"><span className="zh-title" lang="zh">今日完成</span> Daily goal done</h2>
               <p>
                 <strong>{progress.total} word{progress.total === 1 ? '' : 's'} today</strong>
                 {' · '}{progress.learned} learned · {progress.known} already knew
@@ -111,7 +118,7 @@ export default function Today() {
           </section>
         )}
 
-        <div className={styles.words} ref={listRef}>
+        <div className={styles.words} ref={listRef} data-carousel>
           {words.map((w) => (
             <WordCard key={w.s} word={w} status={statusOf(w.s)} toneColors={toneColors} speechRate={speechRate}
               onTeach={() => choose(w.s, 'TEACH')}
@@ -125,36 +132,43 @@ export default function Today() {
       </section>
 
       <aside className={styles.aside}>
-        <section className={styles.challenge} aria-labelledby="challenge-h">
-          <Waves className={styles.waves} />
-          <h2 id="challenge-h"><span lang="zh">每日挑战</span> Daily challenge</h2>
-          {day?.challenge ? (
-            <div className={styles.done}>
-              <Seal text={day.words[0]?.[0] ?? '学'} size={56} title="Done today" />
-              <p>Done: {day.challenge.score}/{day.challenge.total}. A new one opens tomorrow.</p>
-            </div>
-          ) : (
-            <div className={styles.cta}>
-              <p>Ten questions on tones, meanings, listening and measure words.</p>
-              <Link to="/challenge" className="btn btn--round" aria-label="Start the challenge"><Play /></Link>
-            </div>
-          )}
-        </section>
-
-        <section className={styles.panel} aria-labelledby="review-h">
-          <h2 id="review-h"><span lang="zh">复习</span> Review</h2>
-          {due > 0 ? (
-            <div className={styles.row}>
-              <p><strong>{due}</strong> word{due === 1 ? '' : 's'} due</p>
-              <Link to="/practice?source=due" className="btn btn--primary">Review now</Link>
-            </div>
-          ) : (
-            <p>Nothing due. 好样的！</p>
-          )}
+        <section className={styles.panel} aria-labelledby="tasks-h">
+          <h2 id="tasks-h"><span className="zh-title" lang="zh">今日任务</span> <span className="en-sub">Today’s tasks</span></h2>
+          <ul className={styles.tasks}>
+            <li>
+              <Link to="/challenge" className={styles.task}>
+                <span className={styles.taskIcon} lang="zh" aria-hidden="true">战</span>
+                <span className={styles.taskText}>
+                  <span className={styles.taskTitle} lang="zh">每日挑战</span>
+                  <span className={styles.taskSub}>
+                    {day?.challenge
+                      ? `Daily challenge · done ${day.challenge.score}/${day.challenge.total}`
+                      : 'Daily challenge'}
+                  </span>
+                </span>
+                {day?.challenge
+                  ? <Seal text={day.words[0]?.[0] ?? '学'} size={34} title="Challenge done today" />
+                  : <span className={styles.chev}><ChevronRight /></span>}
+              </Link>
+            </li>
+            <li>
+              <Link to="/practice?source=due" className={styles.task}>
+                <span className={styles.taskIcon} lang="zh" aria-hidden="true">复</span>
+                <span className={styles.taskText}>
+                  <span className={styles.taskTitle} lang="zh">复习</span>
+                  <span className={styles.taskSub}>
+                    {due > 0 ? `Review · ${due} word${due === 1 ? '' : 's'} due` : 'Review · nothing due'}
+                  </span>
+                </span>
+                {due > 0 && <span className={styles.count}>{due}</span>}
+                <span className={styles.chev}><ChevronRight /></span>
+              </Link>
+            </li>
+          </ul>
         </section>
 
         <section className={styles.panel} aria-labelledby="seals-h">
-          <h2 id="seals-h"><span lang="zh">印章</span> Your seals</h2>
+          <h2 id="seals-h"><span className="zh-title" lang="zh">印章</span> <span className="en-sub">Your seals · last 14 days</span></h2>
           <SealCalendar days={state.days} today={today} />
         </section>
       </aside>

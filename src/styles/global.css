@@ -11,33 +11,41 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scrollbar-color: var(--sky-deep) var(--sky); background-color: var(--sky); }
+/* Scenery that should melt into the paper below it */
+.fade-bottom { -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent); mask-image: linear-gradient(to bottom, #000 62%, transparent); }
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--sky);
   color: var(--ink);
+  background: linear-gradient(180deg, var(--sky-top) 0%, #e3eff9 40%, var(--sky) 100%) fixed;
   font-family: var(--font-latin);
   font-size: var(--step-0);
+  font-weight: 500;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-h1, h2, h3 { line-height: 1.15; letter-spacing: 0.02em; margin: 0; }
-h1 { font-size: var(--step-3); }
+h1, h2, h3 { margin: 0; line-height: 1.2; font-weight: 700; text-wrap: balance; }
+h1 { font-size: var(--step-3); letter-spacing: -0.01em; }
 h2 { font-size: var(--step-1); }
-p { margin: 0; }
-/* Latin glyphs (pinyin tone marks) from Cormorant; hanzi from Noto Serif SC. Noto's subset mangles ā/ǎ. */
-[lang^='zh'] { font-family: 'Cormorant Garamond', var(--font-han); letter-spacing: 0.02em; }
-a { color: var(--lake-deep); }
+p { margin: 0; text-wrap: pretty; }
+[lang^='zh'] { font-family: 'Urbanist', var(--font-han); letter-spacing: 0.02em; }
+a { color: var(--brand); text-underline-offset: 3px; }
 button { font: inherit; color: inherit; }
-::selection { background: var(--lake-deep); color: #fff; }
-input, textarea { caret-color: var(--lake-deep); }
-html { scrollbar-color: var(--sky-deep) var(--sky); }
-:focus-visible { outline: 3px solid var(--lake-deep); outline-offset: 3px; border-radius: 10px; }
+::selection { background: var(--brand); color: #fff; }
+input, textarea { caret-color: var(--brand); }
+:focus-visible { outline: 3px solid var(--brand-2); outline-offset: 3px; border-radius: 12px; }
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Chinese headings: Song face, then a quieter English line */
+.zh-title { font-family: var(--font-han); font-weight: 600; letter-spacing: 0.04em; }
+.en-sub { font-size: var(--step--1); font-weight: 600; color: var(--ink-2); letter-spacing: 0.01em; }
 
 /* Pinyin face: one font for the whole syllable so carons never fall back to a breve-looking glyph */
 .pinyin { font-family: var(--font-pinyin); font-weight: 700; letter-spacing: 0.01em; }
@@ -49,30 +57,51 @@ html { scrollbar-color: var(--sky-deep) var(--sky); }
 .tone[data-tone='4'] { color: var(--tone-4); }
 .tone[data-tone='5'] { color: var(--tone-5); }
 
-/* Buttons */
+/* Surfaces */
+.paper {
+  background: var(--paper);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* Buttons: one height (48), pills, every state */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
   min-height: 48px; padding: 0 1.4em; border: 0; border-radius: var(--radius-pill);
-  font-weight: 700; letter-spacing: 0.02em; cursor: pointer; text-decoration: none;
-  transition: transform 0.15s var(--ease), background-color 0.2s var(--ease);
+  font-weight: 700; letter-spacing: 0.01em; cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: transform 0.15s var(--ease), background-color 0.2s var(--ease), box-shadow 0.2s var(--ease), color 0.2s var(--ease);
 }
 .btn:active { transform: scale(0.97); }
-.btn--primary { background: var(--lake-deep); color: #fff; }
-.btn--primary:hover { background: var(--lake-ink); }
-.btn--quiet { background: var(--sky); color: var(--ink); }
-.btn--quiet:hover { background: var(--sky-deep); }
+.btn:disabled, .btn[aria-disabled='true'] { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn--primary { background: var(--brand); color: #fff; box-shadow: 0 8px 18px -10px rgb(31 78 133 / 0.7); }
+.btn--primary:hover { background: var(--brand-hover); }
+.btn--primary:active { background: var(--brand-press); }
+.btn--quiet { background: var(--paper-2); color: var(--brand); box-shadow: inset 0 0 0 1.5px var(--line-strong); }
+.btn--quiet:hover { background: var(--brand-soft); box-shadow: inset 0 0 0 1.5px var(--brand-2); }
 .btn--round {
-  flex: none; width: 56px; height: 56px; padding: 0; border-radius: 50%;
-  background: var(--paper); color: var(--ink); box-shadow: 0 6px 20px rgb(29 111 134 / 0.18);
+  flex: none; width: 52px; height: 52px; min-height: 0; padding: 0; border-radius: 50%;
+  background: var(--paper); color: var(--brand); box-shadow: var(--shadow-card);
 }
+.btn--round:hover { box-shadow: var(--shadow-lift); color: var(--brand-hover); }
+.btn--block { width: 100%; }
+
 .chip {
-  min-height: 44px; padding: 0 18px; border: 0; border-radius: var(--radius-pill);
-  background: var(--sky); color: var(--ink); font-weight: 700; cursor: pointer;
-  transition: background-color 0.2s var(--ease);
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px;
+  border: 0; border-radius: var(--radius-pill);
+  background: var(--paper); color: var(--ink); font-weight: 600; cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: background-color 0.2s var(--ease), box-shadow 0.2s var(--ease), color 0.2s var(--ease);
 }
-.chip:hover { background: var(--sky-deep); }
-.chip[aria-pressed='true'] { background: var(--ink); color: #fff; }
+.chip:hover { box-shadow: inset 0 0 0 1.5px var(--brand-2); color: var(--brand); }
+.chip[aria-pressed='true'] { background: var(--brand); color: #fff; box-shadow: none; }
+
+/* Small label pills (level, status) */
+.tag {
+  display: inline-flex; align-items: center; gap: 4px; flex: none; white-space: nowrap;
+  min-height: 24px; padding: 0 10px; border-radius: var(--radius-pill);
+  background: var(--brand-soft); color: var(--brand); font-size: var(--fs-xs); font-weight: 700;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

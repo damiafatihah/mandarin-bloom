@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useStore } from '../state/store';
-import { InkMist } from '../components/InkMist';
+import { Landscape } from '../components/art/Scenery';
+import { Backdrop } from '../components/Backdrop';
 import { Seal } from '../components/Seal';
 import { LevelPicker } from '../components/LevelPicker';
 import { WordsPerDayPicker } from '../components/WordsPerDayPicker';
@@ -22,12 +23,13 @@ export default function Welcome() {
 
   return (
     <div className={styles.screen}>
+      <Backdrop />
       <aside className={styles.poem} aria-hidden="true">
         <p className={styles.poemHan} lang="zh">学海无涯</p>
         <p className={styles.poemEn}>The sea of learning has no shore.</p>
       </aside>
       <main className={styles.card}>
-        <InkMist className={styles.mist} />
+        <Landscape variant="wide" seed="welcome" pagoda sun birds boat pagodaRange={[0.55, 0.8]} sunX={0.75} className={`${styles.art} fade-bottom`} />
         <div className={styles.body}>
           {step === 0 && (
             <>

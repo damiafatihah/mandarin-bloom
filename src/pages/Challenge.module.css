@@ -1,7 +1,13 @@
 .intro {
-  position: relative; overflow: hidden; display: grid; gap: 18px; justify-items: start;
-  max-width: 640px; margin-inline: auto; padding: 120px clamp(20px, 5vw, 40px) 40px;
-  background: var(--paper); border-radius: var(--radius-card);
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; gap: 14px; justify-items: center; text-align: center;
+  max-width: 680px; margin-inline: auto; padding: 236px clamp(20px, 5vw, 40px) 36px;
+  background: var(--paper); border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
-.mist { position: absolute; inset: 0 0 auto 0; width: 100%; height: 160px; pointer-events: none; }
-.intro > :not(.mist) { position: relative; }
+.art { position: absolute; z-index: -1; inset: 0 0 auto 0; width: 100%; height: 240px; }
+.title { display: grid; gap: 4px; }
+.titleZh { font-family: var(--font-han); font-weight: 600; font-size: var(--step-3); letter-spacing: 0.1em; }
+.titleEn { font-size: var(--step-1); color: var(--ink-2); font-weight: 600; }
+.lead { max-width: 46ch; color: var(--ink-2); }
+.facts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.intro :global(.btn--primary) { min-width: 200px; margin-top: 6px; }

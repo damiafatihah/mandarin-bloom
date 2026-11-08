@@ -1,61 +1,113 @@
-.page { display: grid; gap: 28px; }
-.header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.date { font-family: var(--font-serif); font-style: italic; font-size: var(--step-1); color: var(--ink-2); }
-.title { margin-top: 4px; }
-.streak { flex: none; color: var(--ink-2); text-align: right; white-space: nowrap; }
-.streak strong { display: block; font-size: var(--step-2); color: var(--gold); line-height: 1; }
-.wordsSection { display: grid; gap: 12px; min-width: 0; }
+.page { display: grid; gap: 24px; }
+
+/* ── Greeting over an ink landscape ── */
+.hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  min-height: 200px; margin: calc(var(--gutter) * -1) calc(var(--gutter) * -1) 0;
+  padding: calc(var(--gutter) + 8px) var(--gutter) 28px;
+}
+.heroArt {
+  position: absolute; z-index: -1; right: 0; bottom: 0; width: min(78%, 560px); height: 100%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%); mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+}
+.heroText { display: grid; gap: 6px; max-width: 28rem; }
+.date { font-size: var(--step--1); font-weight: 600; color: var(--ink-2); letter-spacing: 0.06em; }
+.greeting {
+  font-family: var(--font-han); font-weight: 600; letter-spacing: 0.04em; line-height: 1.35;
+  font-size: clamp(1.5rem, 1.2rem + 1.6vw, 2.25rem);
+}
+.greetingEn { color: var(--ink-2); font-weight: 600; }
+.streak {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px 0 10px;
+  border-radius: var(--radius-pill); background: rgb(255 255 255 / 0.85); box-shadow: var(--shadow-card);
+  color: var(--ink-2); font-size: var(--step--1); font-weight: 600; white-space: nowrap;
+}
+.streak strong { color: var(--gold); font-size: var(--step-0); }
+
+/* ── Today's words ── */
+.wordsSection { display: grid; gap: 14px; min-width: 0; align-content: start; }
+.sectionHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.sectionHead h2 { font-size: var(--step-2); }
+.progressText { color: var(--ink-2); font-weight: 600; }
+.progressText strong { color: var(--brand); font-size: var(--step-1); }
+.bar { display: flex; gap: 6px; }
+.bar span { flex: 1; height: 8px; border-radius: 4px; background: rgb(255 255 255 / 0.85); box-shadow: inset 0 0 0 1px var(--line); transition: background-color 0.3s var(--ease); }
+.bar span[data-state='taught'] { background: var(--brand); box-shadow: none; }
+.bar span[data-state='known'] { background: var(--brand-2); box-shadow: none; }
+.hint { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--ink-2); font-size: var(--step--1); }
+.hint b { color: var(--ink); }
+.hint svg { color: var(--brand); }
+
 .words {
-  display: grid; grid-auto-flow: column; grid-auto-columns: min(82vw, 340px); gap: 16px;
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(80vw, 330px); gap: 16px;
   overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
-  margin-inline: calc(var(--gutter) * -1); padding: 0 var(--gutter) 8px; scroll-padding-inline: var(--gutter);
+  margin-inline: calc(var(--gutter) * -1); padding: 4px var(--gutter) 20px; scroll-padding-inline: var(--gutter);
   scrollbar-width: none;
 }
 .words > * { scroll-snap-align: start; }
 .nudge { color: var(--ink-2); }
 
-/* Daily progress: one segment per card (taught = deep lake, known = lake, new = empty) */
-.progress { display: grid; gap: 10px; }
-.progressText { font-size: var(--step-1); }
-.progressText strong { font-size: var(--step-2); }
-.bar { display: flex; gap: 6px; }
-.bar span { flex: 1; height: 8px; border-radius: 4px; background: var(--sky-deep); transition: background-color 0.3s var(--ease); }
-.bar span[data-state='taught'] { background: var(--lake-deep); }
-.bar span[data-state='known'] { background: var(--lake); }
-.hint { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: var(--ink-2); }
-.hint svg { color: var(--lake-deep); }
-
 .goalDone {
+  position: relative; isolation: isolate; overflow: hidden;
   display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 20px; align-items: start;
-  padding: 24px; border-radius: var(--radius-card); background: var(--paper);
+  padding: 24px; border-radius: var(--radius-card); background: var(--paper); box-shadow: var(--shadow-card);
 }
+.goalHills { position: absolute; z-index: -1; right: 0; bottom: 0; width: 60%; height: 90px; }
 .goalBody { display: grid; gap: 6px; }
-.goalBody h2 { font-size: var(--step-1); }
+.goalBody h2 { font-size: var(--step-2); }
 .optional { color: var(--ink-2); }
 .doneActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .doneActions > * { white-space: nowrap; }
-/* Phone: seal above the text so the buttons get the full width */
-@media (max-width: 559px) {
-  .goalDone { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-}
-.aside { display: grid; gap: 16px; align-content: start; }
-.challenge {
-  position: relative; overflow: hidden; display: grid; gap: 12px;
-  padding: 24px 24px 72px; border-radius: var(--radius-card);
-  background: var(--lake-deep); color: #fff;
-}
-.waves { position: absolute; inset: auto 0 0 0; width: 100%; height: 64px; color: var(--lake); }
-.cta, .done, .row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.panel { display: grid; gap: 12px; padding: 22px 24px; background: var(--paper); border-radius: var(--radius-card); }
 
+/* ── Tasks and seals ── */
+.aside { display: grid; gap: 16px; align-content: start; }
+.panel {
+  display: grid; gap: 14px; padding: 20px; border-radius: var(--radius-card);
+  background: var(--paper); box-shadow: var(--shadow-card);
+}
+.panel h2 { font-size: var(--step-1); }
+.tasks { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.task {
+  display: flex; align-items: center; gap: 14px; min-height: 72px; padding: 12px 12px 12px 12px;
+  border-radius: var(--radius-inner); background: var(--paper-2); color: var(--ink); text-decoration: none;
+  box-shadow: inset 0 0 0 1px var(--line);
+  transition: background-color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.15s var(--ease);
+}
+.task:hover { background: var(--brand-soft); box-shadow: inset 0 0 0 1.5px var(--brand-2); }
+.task:active { transform: scale(0.985); }
+.taskIcon {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px;
+  background: var(--paper); color: var(--brand); font-family: var(--font-han); font-weight: 600; font-size: 1.25rem;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.taskText { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.taskTitle { font-family: var(--font-han); font-weight: 600; font-size: var(--step-1); letter-spacing: 0.04em; }
+.taskSub { color: var(--ink-2); font-size: var(--step--1); }
+.count {
+  flex: none; display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px;
+  border-radius: var(--radius-pill); background: var(--cinnabar); color: #fff; font-size: var(--fs-xs); font-weight: 700;
+}
+.chev { flex: none; display: grid; color: var(--ink-2); }
+
+@media (min-width: 640px) {
+  .hero { margin: 0; padding: 28px 28px 32px; min-height: 220px; border-radius: var(--radius-card); background: rgb(255 255 255 / 0.55); }
+}
 @media (min-width: 768px) {
   .words {
-    grid-auto-flow: row; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    overflow: visible; margin-inline: 0; padding: 0;
+    grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible; margin-inline: 0; padding: 4px 0 0;
   }
+  /* an odd last card spans the row instead of standing alone */
+  .words > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
-@media (min-width: 1024px) {
-  .page { grid-template-columns: minmax(0, 1fr) 340px; column-gap: 32px; align-items: start; }
-  .header { grid-column: 1 / -1; }
+@media (min-width: 1560px) {
+  .words { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .words > :last-child:nth-child(odd) { grid-column: auto; }
+  .words > :last-child:nth-child(3n + 1) { grid-column: 1 / -1; }
+}
+@media (min-width: 1100px) {
+  .page { grid-template-columns: minmax(0, 1fr) 330px; column-gap: 24px; align-items: start; }
+  .hero { grid-column: 1 / -1; }
   .aside { position: sticky; top: 40px; }
 }

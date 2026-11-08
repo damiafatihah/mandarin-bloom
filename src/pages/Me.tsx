@@ -8,6 +8,9 @@ import { LevelPicker } from '../components/LevelPicker';
 import { WordsPerDayPicker } from '../components/WordsPerDayPicker';
 import { VoicePicker } from '../components/VoicePicker';
 import { Info } from '../components/icons';
+import { PageHeader } from '../components/PageHeader';
+import { Seal } from '../components/Seal';
+import { dayProgress } from '../lib/daily';
 import styles from './Me.module.css';
 
 export default function Me() {
@@ -39,10 +42,29 @@ export default function Me() {
     },
   ];
   const openStat = stats.find((s) => s.label === open);
+  const goal = dayProgress(state.days[today], state.settings.wordsPerDay);
+  const shownTotal = Math.max(goal.total, state.settings.wordsPerDay);
+  const ratio = shownTotal ? Math.min(1, goal.done / shownTotal) : 0;
+  const R = 34;
+  const C = 2 * Math.PI * R;
 
   return (
     <div className={styles.page}>
-      <h1><span lang="zh">我</span> Me</h1>
+      <PageHeader zh="我的" en="Me" sub="Your progress and settings, saved in this browser." />
+
+      <section className={styles.goal} aria-labelledby="goal-h">
+        <svg className={styles.ring} viewBox="0 0 80 80" aria-hidden="true">
+          <circle cx="40" cy="40" r={R} className={styles.ringTrack} />
+          <circle cx="40" cy="40" r={R} className={styles.ringFill} strokeDasharray={`${C * ratio} ${C}`} />
+        </svg>
+        <div className={styles.goalText}>
+          <h2 id="goal-h"><span className="zh-title" lang="zh">今日目标</span> <span className="en-sub">Today’s goal</span></h2>
+          <p className={styles.goalCount}><strong className="num">{goal.done}</strong> / {shownTotal} words done today</p>
+          <p className={styles.goalNote}>{goal.goalMet ? 'Goal reached. 好样的！' : `Learn or skip ${state.settings.wordsPerDay} words a day on Today.`}</p>
+        </div>
+        {goal.goalMet && <Seal text="完" size={44} title="Today’s goal reached" />}
+      </section>
+
       <div className={styles.statsBlock}>
         <dl className={styles.stats}>
           {stats.map((s) => (
@@ -68,18 +90,18 @@ export default function Me() {
       </div>
 
       <section className={styles.section} aria-labelledby="daily-h">
-        <h2 id="daily-h">Daily words</h2>
+        <h2 id="daily-h"><span className="zh-title" lang="zh">每日新词</span> <span className="en-sub">Daily words</span></h2>
         <WordsPerDayPicker value={state.settings.wordsPerDay} onChange={(n) => set({ wordsPerDay: n })} />
         <p className={styles.note}>Raising this adds words today. Lowering it applies from tomorrow.</p>
       </section>
 
       <section className={styles.section} aria-labelledby="levels-h">
-        <h2 id="levels-h">Levels</h2>
+        <h2 id="levels-h"><span className="zh-title" lang="zh">级别</span> <span className="en-sub">Levels</span></h2>
         <LevelPicker value={state.settings.levels} onChange={(levels) => set({ levels })} />
       </section>
 
       <section className={styles.section} aria-labelledby="display-h">
-        <h2 id="display-h">Display and sound</h2>
+        <h2 id="display-h"><span className="zh-title" lang="zh">显示与声音</span> <span className="en-sub">Display and sound</span></h2>
         <label className={styles.toggle}>
           <input type="checkbox" checked={state.settings.toneColors} onChange={(e) => set({ toneColors: e.target.checked })} />
           Colour pinyin by tone
@@ -98,7 +120,7 @@ export default function Me() {
       </section>
 
       <section className={styles.section} aria-labelledby="data-h">
-        <h2 id="data-h">Your data</h2>
+        <h2 id="data-h"><span className="zh-title" lang="zh">数据</span> <span className="en-sub">Your data</span></h2>
         <p className={styles.note}>Progress is saved in this browser only.</p>
         <button type="button" className="btn btn--quiet" onClick={() => {
           if (window.confirm('Erase all progress? Your settings are kept.')) dispatch({ type: 'RESET' });
@@ -106,7 +128,7 @@ export default function Me() {
       </section>
 
       <section className={styles.section} aria-labelledby="credits-h">
-        <h2 id="credits-h">Credits</h2>
+        <h2 id="credits-h"><span className="zh-title" lang="zh">致谢</span> <span className="en-sub">Credits</span></h2>
         <p className={styles.note}>
           Dictionary: <a href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict">CC-CEDICT</a> (CC BY-SA 4.0).
           HSK 3.0 word lists: <a href="https://github.com/drkameleon/complete-hsk-vocabulary">complete-hsk-vocabulary</a> (MIT).

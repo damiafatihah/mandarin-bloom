@@ -1,11 +1,12 @@
 .speak {
-  position: relative; display: inline-grid; place-items: center;
+  position: relative; flex: none; display: inline-grid; place-items: center;
   width: 48px; height: 48px; border: 0; border-radius: 50%;
-  background: var(--sky); color: var(--lake-deep); cursor: pointer;
-  transition: transform 0.15s var(--ease), background-color 0.2s var(--ease);
+  background: var(--paper); color: var(--brand); cursor: pointer;
+  box-shadow: 0 0 0 1.5px var(--line), 0 6px 14px -8px rgb(31 78 133 / 0.5);
+  transition: transform 0.15s var(--ease), background-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
-.speak:hover { background: var(--sky-deep); }
+.speak:hover { background: var(--brand-soft); box-shadow: 0 0 0 1.5px var(--brand-2), 0 8px 18px -8px rgb(31 78 133 / 0.55); }
 .speak:active { transform: scale(0.94); }
-.large { width: 112px; height: 112px; background: var(--lake-deep); color: #fff; }
-.large:hover { background: var(--lake-ink); }
-.large svg { width: 44px; height: 44px; }
+.large { width: 104px; height: 104px; background: var(--brand); color: #fff; box-shadow: 0 14px 30px -14px rgb(31 78 133 / 0.8); }
+.large:hover { background: var(--brand-hover); box-shadow: 0 14px 30px -14px rgb(31 78 133 / 0.8); }
+.large svg { width: 42px; height: 42px; }

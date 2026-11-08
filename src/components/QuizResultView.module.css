@@ -1,10 +1,22 @@
-.result > :first-child { margin: 8px 0 12px; }
 .result {
-  display: grid; gap: 16px; justify-items: center; text-align: center;
-  max-width: 560px; margin-inline: auto; padding: 40px 24px; background: var(--paper); border-radius: var(--radius-card);
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; gap: 14px; justify-items: center; text-align: center;
+  max-width: 600px; margin-inline: auto; padding: 150px 24px 32px;
+  background: var(--paper); border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
-.score { font-size: var(--step-2); color: var(--ink-2); }
+.art { position: absolute; z-index: -1; inset: 0 0 auto 0; width: 100%; height: 190px; }
+.result > :nth-child(2) { margin-bottom: 4px; }
+.score { font-size: var(--step-2); color: var(--ink-2); font-weight: 600; }
 .score strong { font-size: var(--step-3); color: var(--ink); }
-.missed ul { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 8px 0 0; padding: 0; list-style: none; }
-.missed a { display: inline-block; padding: 6px 14px; border-radius: var(--radius-pill); background: var(--sky); font-size: var(--step-1); text-decoration: none; color: var(--ink); }
-.actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.praise { color: var(--ink-2); }
+.missed { display: grid; gap: 10px; }
+.missed h2 { font-size: var(--step-0); color: var(--ink-2); }
+.missed ul { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 0; padding: 0; list-style: none; }
+.missed a {
+  display: inline-grid; place-items: center; min-height: 44px; padding: 0 16px; border-radius: var(--radius-pill);
+  background: var(--paper-2); box-shadow: inset 0 0 0 1.5px var(--line-strong);
+  font-family: var(--font-han); font-weight: 600; font-size: var(--step-1); text-decoration: none; color: var(--ink);
+  transition: background-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.missed a:hover { background: var(--brand-soft); box-shadow: inset 0 0 0 1.5px var(--brand-2); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }

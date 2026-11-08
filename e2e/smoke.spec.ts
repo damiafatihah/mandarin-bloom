@@ -22,7 +22,7 @@ test('onboarding → today → challenge → dictionary', async ({ page }, info)
   await expectNoHorizontalOverflow(page);
   await shot('today');
 
-  await page.getByRole('link', { name: 'Start the challenge' }).click();
+  await page.getByRole('link', { name: /Daily challenge/ }).click();
   await page.getByRole('button', { name: 'Begin' }).click();
   await page.locator('[data-choice]').first().click();
   await expect(page.getByText(/Correct|Answer:/)).toBeVisible();

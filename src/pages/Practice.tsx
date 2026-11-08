@@ -10,6 +10,8 @@ import { speechSupported } from '../lib/speech';
 import { QuizRunner, type QuizResult } from '../components/QuizRunner';
 import { QuizResultView } from '../components/QuizResultView';
 import { Loading, LoadError } from '../components/Status';
+import { PageHeader } from '../components/PageHeader';
+import { ArrowRight } from '../components/icons';
 import styles from './Practice.module.css';
 
 const SOURCES: { value: PracticeSource; label: string }[] = [
@@ -71,7 +73,8 @@ export default function Practice() {
 
   return (
     <div className={styles.page}>
-      <h1><span lang="zh">练习</span> Practice</h1>
+      <PageHeader zh="练习" en="Practice" sub="Quiz yourself any time, as often as you like. Every answer counts toward your reviews." />
+      <div className={styles.card}>
       <fieldset className={styles.group}>
         <legend>Words from</legend>
         <div className={styles.chips}>
@@ -101,7 +104,8 @@ export default function Practice() {
           {source === 'due' ? 'Nothing is due right now. 好样的！ Try “My levels”.' : 'No words match. Try another source or question type.'}
         </p>
       )}
-      <button type="button" className="btn btn--primary" onClick={start}>Start</button>
+      <button type="button" className="btn btn--primary" onClick={start}>Start<ArrowRight /></button>
+      </div>
     </div>
   );
 }

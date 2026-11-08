@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Seal } from './Seal';
+import { Landscape } from './art/Scenery';
 import styles from './QuizResultView.module.css';
 
 type Props = { heading: string; score: number; total: number; missed: string[]; sealText: string; children?: ReactNode };
@@ -15,10 +16,11 @@ function praise(r: number) {
 export function QuizResultView({ heading, score, total, missed, sealText, children }: Props) {
   return (
     <section className={styles.result} aria-labelledby="result-h">
-      <Seal text={sealText} size={96} title="Stamped" stamp />
+      <Landscape variant="wide" seed="result" sun pagoda birds pagodaRange={[0.4, 0.6]} sunX={0.62} className={`${styles.art} fade-bottom`} />
+      <Seal text={sealText} size={88} title="Stamped" stamp />
       <h1 id="result-h">{heading}</h1>
-      <p className={styles.score}><strong>{score}</strong> / {total}</p>
-      <p>{praise(total ? score / total : 0)}</p>
+      <p className={styles.score}><strong className="num">{score}</strong> / {total}</p>
+      <p className={styles.praise}>{praise(total ? score / total : 0)}</p>
       {missed.length > 0 && (
         <div className={styles.missed}>
           <h2>Words to revisit</h2>

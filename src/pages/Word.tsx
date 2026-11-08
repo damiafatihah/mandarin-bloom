@@ -4,10 +4,10 @@ import { useStore } from '../state/store';
 import { useCedict, useHsk } from '../data/resources';
 import { dateKey } from '../lib/dates';
 import { levelLabel } from '../lib/levels';
-import { InkMist } from '../components/InkMist';
+import { Landscape, PlumBranch } from '../components/art/Scenery';
 import { SpeakButton } from '../components/SpeakButton';
 import { ToneText } from '../components/ToneText';
-import { ChevronLeft } from '../components/icons';
+import { Bookmark, Check, ChevronLeft } from '../components/icons';
 import { Loading, LoadError } from '../components/Status';
 import styles from './Word.module.css';
 
@@ -28,7 +28,12 @@ export default function Word() {
   const main = hsk ?? extra[0];
   if (!main) {
     return cedict
-      ? <div className={styles.page}><h1 lang="zh">{hanzi}</h1><p>Not found in the dictionary. <Link to="/dictionary">Search again</Link></p></div>
+      ? (
+        <article className={styles.page}>
+          <h1 className={styles.hanzi} lang="zh" style={{ '--len': Math.max(1, hanzi.length) } as CSSProperties}>{hanzi}</h1>
+          <p className={styles.notFound}>Not found in the dictionary. <Link to="/dictionary">Search again</Link></p>
+        </article>
+      )
       : <Loading label="Looking it up…" />;
   }
 
@@ -37,35 +42,43 @@ export default function Word() {
 
   return (
     <article className={styles.page}>
-      <InkMist className={styles.mist} />
+      <PlumBranch className={styles.plum} />
+      <Landscape variant="wide" seed={`word-${main.s}`} boat className={styles.hills} />
       <button type="button" className={`btn btn--round ${styles.back}`} onClick={() => navigate(-1)} aria-label="Back"><ChevronLeft /></button>
-      <h1 className={styles.hanzi} lang="zh" style={{ '--len': main.s.length } as CSSProperties}>{main.s}</h1>
-      <div className={styles.sound}>
-        <ToneText pinyin={main.p} colored={toneColors} className={styles.pinyin} />
-        <SpeakButton text={main.s} rate={speechRate} label={`Hear ${main.s}`} />
+
+      <div className={styles.hero}>
+        <h1 className={styles.hanzi} lang="zh" style={{ '--len': main.s.length } as CSSProperties}>{main.s}</h1>
+        <div className={styles.sound}>
+          <ToneText pinyin={main.p} colored={toneColors} className={styles.pinyin} />
+          <SpeakButton text={main.s} rate={speechRate} label={`Hear ${main.s}`} />
+        </div>
+        {hsk && (
+          <ul className={styles.tags}>
+            <li className="tag">{levelLabel(hsk.l)}</li>
+            {hsk.c.length > 0 && <li className="tag"><span lang="zh">量词 {hsk.c.join('、')}</span></li>}
+          </ul>
+        )}
       </div>
-      {hsk && (
-        <p className={styles.meta}>
-          {levelLabel(hsk.l)}
-          {hsk.c.length > 0 && <> · measure word <span lang="zh">{hsk.c.join('、')}</span></>}
-        </p>
-      )}
-      <ol className={styles.meanings}>{main.m.map((m, i) => <li key={i}>{m}</li>)}</ol>
+
+      <section className={styles.section} aria-labelledby="meanings-h">
+        <h2 id="meanings-h"><span className="zh-title" lang="zh">释义</span> <span className="en-sub">Meanings</span></h2>
+        <ul className={styles.meanings}>{main.m.map((m, i) => <li key={i}>{m}</li>)}</ul>
+      </section>
 
       {others.length > 0 && (
-        <section className={styles.section}>
-          <h2>Other readings</h2>
-          <ul>
+        <section className={styles.section} aria-labelledby="readings-h">
+          <h2 id="readings-h"><span className="zh-title" lang="zh">多音</span> <span className="en-sub">Other readings</span></h2>
+          <ul className={styles.readings}>
             {others.map((e, i) => (
-              <li key={i}><ToneText pinyin={e.p} colored={toneColors} />: {e.m.slice(0, 3).join('; ')}</li>
+              <li key={i}><ToneText pinyin={e.p} colored={toneColors} className={styles.readingPy} /> {e.m.slice(0, 3).join('; ')}</li>
             ))}
           </ul>
         </section>
       )}
 
       {main.s.length > 1 && (
-        <section className={styles.section}>
-          <h2>Characters</h2>
+        <section className={styles.section} aria-labelledby="chars-h">
+          <h2 id="chars-h"><span className="zh-title" lang="zh">单字</span> <span className="en-sub">Characters</span></h2>
           <ul className={styles.chars}>
             {[...main.s].map((ch, i) => (
               <li key={i}><Link to={`/word/${encodeURIComponent(ch)}`} lang="zh">{ch}</Link></li>
@@ -77,8 +90,12 @@ export default function Word() {
       {hsk && (
         <div className={styles.actions}>
           {card
-            ? <p>In your reviews · next {card.due <= today ? 'today' : card.due}</p>
-            : <button type="button" className="btn btn--primary" onClick={() => dispatch({ type: 'ADD_TO_DECK', word: hsk.s, today })}>Add to my reviews</button>}
+            ? <p className={styles.inReview}><Check /> In your reviews · next {card.due <= today ? 'today' : card.due}</p>
+            : (
+              <button type="button" className="btn btn--primary btn--block" onClick={() => dispatch({ type: 'ADD_TO_DECK', word: hsk.s, today })}>
+                <Bookmark /> Add to my reviews
+              </button>
+            )}
         </div>
       )}
     </article>

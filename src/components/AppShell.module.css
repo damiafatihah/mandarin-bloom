@@ -1,43 +1,62 @@
-.shell { min-height: 100dvh; }
+.shell { position: relative; min-height: 100dvh; }
 .main {
+  position: relative; z-index: 1;
   max-width: 1180px; margin-inline: auto;
-  padding: var(--gutter) var(--gutter) calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--gutter));
-}
-.nav {
-  position: fixed; inset: auto 0 0 0; z-index: 10;
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  padding-bottom: env(safe-area-inset-bottom); background: var(--paper);
-}
-.brand { display: none; }
-.tab {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  min-height: var(--nav-h); color: var(--ink-2); text-decoration: none; font-size: 0.72rem; letter-spacing: 0.02em;
-}
-.tabHan {
-  display: grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 50%;
-  font-family: var(--font-han); font-size: 1.25rem; line-height: 1;
-  transition: background-color 0.2s var(--ease), color 0.2s var(--ease), border-radius 0.2s var(--ease), transform 0.2s var(--ease);
-}
-.tab[aria-current='page'] { color: var(--ink); font-weight: 700; }
-.tab[aria-current='page'] .tabHan {
-  background: var(--cinnabar); color: #fff; border-radius: 7px; transform: rotate(-4deg);
-  font-weight: 600;
+  padding: var(--gutter) var(--gutter) calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--gutter) + 8px);
 }
 
+/* ── Phone & tablet: bottom bar ── */
+.nav {
+  position: fixed; inset: auto 0 0 0; z-index: 10;
+  padding: 6px 8px env(safe-area-inset-bottom);
+  background: var(--paper); border-radius: 24px 24px 0 0; box-shadow: var(--shadow-float);
+}
+.brand, .railArt, .tabZh { display: none; }
+.tabs { display: grid; grid-template-columns: repeat(5, 1fr); }
+.tab {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  min-height: calc(var(--nav-h) - 6px); border-radius: 16px;
+  color: var(--ink-2); text-decoration: none; font-size: var(--fs-xs); font-weight: 600;
+  transition: color 0.2s var(--ease), background-color 0.2s var(--ease);
+}
+.tab:hover { color: var(--brand); }
+.tabHan {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+  font-family: var(--font-han); font-size: 1.2rem; line-height: 1; color: var(--brand);
+  transition: background-color 0.25s var(--ease), color 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.tab[aria-current='page'] { color: var(--ink); font-weight: 700; }
+/* the active tab becomes a vermilion seal */
+.tab[aria-current='page'] .tabHan {
+  background: var(--cinnabar); color: #fff; transform: rotate(-4deg);
+  box-shadow: inset 0 0 0 2px var(--cinnabar), inset 0 0 0 3.5px rgb(255 255 255 / 0.85);
+}
+
+/* ── Laptop: a quiet left rail on the page ground ── */
 @media (min-width: 1024px) {
-  .shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); }
+  .shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); }
   .nav {
-    position: sticky; top: 0; height: 100dvh;
-    grid-template-columns: none; grid-auto-rows: min-content; align-content: start; gap: 4px;
-    padding: 32px 20px; background: transparent;
+    position: sticky; top: 0; height: 100dvh; z-index: 2;
+    display: flex; flex-direction: column; gap: 28px;
+    padding: 32px 20px 0; background: transparent; border-radius: 0; box-shadow: none;
   }
-  .brand {
-    display: block; margin: 0 0 28px 12px; text-decoration: none; color: var(--ink);
-    font-family: var(--font-brush); font-size: 2.6rem; line-height: 1;
+  .brand { display: grid; gap: 4px; padding-inline: 12px; color: var(--ink); text-decoration: none; }
+  .brandMark { font-family: var(--font-brush); font-size: 2.75rem; line-height: 1; letter-spacing: 0.04em; }
+  .brandSub { font-size: var(--fs-xs); font-weight: 600; color: var(--ink-2); letter-spacing: 0.04em; }
+  .tabs { display: grid; grid-template-columns: none; gap: 4px; }
+  .tab {
+    flex-direction: row; justify-content: flex-start; gap: 14px; min-height: 52px; padding-inline: 10px;
+    font-size: var(--step-0); font-weight: 600;
   }
-  .brand span { font-family: inherit; }
-  .tab { flex-direction: row; justify-content: flex-start; gap: 14px; min-height: 52px; padding-inline: 12px; border-radius: 14px; font-size: 1rem; }
-  .tab:hover { background: rgb(255 255 255 / 0.6); }
-  .tab[aria-current='page'] { background: var(--paper); }
-  .main { width: 100%; padding: 40px 48px 64px; }
+  .tab:hover { background: rgb(255 255 255 / 0.55); }
+  .tab[aria-current='page'] { background: var(--paper); box-shadow: var(--shadow-card); }
+  .tabLabel { flex: 1; }
+  .tabZh { display: block; font-family: var(--font-han); font-size: var(--step--1); color: var(--ink-2); letter-spacing: 0.08em; }
+  .railArt { display: block; position: relative; margin-top: auto; height: 220px; margin-inline: -20px; }
+  .motto {
+    position: absolute; top: 0; left: 32px; writing-mode: vertical-rl;
+    font-family: var(--font-brush); font-size: 1.75rem; line-height: 1; color: var(--brand); opacity: 0.7;
+  }
+  .railHills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 140px; }
+  .main { width: 100%; padding: 40px 40px 64px; }
 }

@@ -1,8 +1,11 @@
-.page {
-  display: grid; gap: 24px; justify-items: start; max-width: 720px;
-  padding: clamp(20px, 5vw, 40px); background: var(--paper); border-radius: var(--radius-card);
+.page { display: grid; gap: 8px; max-width: 760px; }
+.card {
+  display: grid; gap: 24px; justify-items: start; padding: clamp(20px, 4vw, 32px);
+  background: var(--paper); border-radius: var(--radius-card); box-shadow: var(--shadow-card);
 }
-.group { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; }
-.group legend { padding: 0; margin-bottom: 10px; font-family: var(--font-serif); font-style: italic; font-size: var(--step-1); color: var(--ink-2); }
+.group { display: grid; gap: 12px; width: 100%; margin: 0; padding: 0; border: 0; }
+.group + .group { padding-top: 20px; border-top: 1px solid var(--line); }
+.group legend { float: left; width: 100%; margin-bottom: 12px; padding: 0; font-weight: 700; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .empty { color: var(--ink-2); }
+.card > :global(.btn--primary) { min-width: 180px; }

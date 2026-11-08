@@ -6,6 +6,8 @@ import { useDebounced } from '../hooks/useDebounced';
 import { hskToEntry, searchDict } from '../lib/search';
 import { levelLabel } from '../lib/levels';
 import { ToneText } from '../components/ToneText';
+import { PageHeader } from '../components/PageHeader';
+import { ChevronRight, Search } from '../components/icons';
 import styles from './Dictionary.module.css';
 
 const EXAMPLES = ['犹豫', 'youyu', 'hesitate', '一帆风顺'];
@@ -29,11 +31,12 @@ export default function Dictionary() {
 
   return (
     <div className={styles.page}>
-      <h1><span lang="zh">词典</span> Dictionary</h1>
+      <PageHeader zh="词典" en="Dictionary" sub="Search about 120,000 words by 汉字, pinyin (tones optional) or English." />
       <form role="search" className={styles.form} onSubmit={(e) => e.preventDefault()}>
         <label htmlFor="dict-q" className="visually-hidden">Search in Chinese, pinyin or English</label>
-        <input id="dict-q" type="search" className={styles.input} value={input} onChange={(e) => setInput(e.target.value)}
-          placeholder="汉字 · pinyin · English" autoComplete="off" autoCapitalize="off" spellCheck={false} enterKeyHint="search" />
+        <span className={styles.searchIcon}><Search /></span>
+        <input id="dict-q" name="q" type="search" className={styles.input} value={input} onChange={(e) => setInput(e.target.value)}
+          placeholder="搜索 · 汉字, pinyin or English…" autoComplete="off" autoCapitalize="off" spellCheck={false} enterKeyHint="search" />
       </form>
       {!cedict && !error && <p className={styles.note} role="status">Loading the full dictionary (once, about 3 MB). Searching HSK words meanwhile.</p>}
       {error && <p className={styles.note} role="alert">The full dictionary didn’t load, so only HSK words are searchable.</p>}
@@ -53,7 +56,8 @@ export default function Dictionary() {
                 <ToneText pinyin={e.p} colored={settings.toneColors} className={styles.py} />
                 <span className={styles.def}>{e.m.slice(0, 3).join('; ')}</span>
               </span>
-              {levels.has(e.s) && <span className={styles.badge}>{levelLabel(levels.get(e.s)!)}</span>}
+              {levels.has(e.s) && <span className={`tag ${styles.badge}`}>{levelLabel(levels.get(e.s)!)}</span>}
+              <span className={styles.chev}><ChevronRight /></span>
             </Link>
           </li>
         ))}
