@@ -17,6 +17,27 @@ describe('convertHsk', () => {
       { s: '啊', t: '啊', p: 'a', n: 'a5', m: ['ah'], l: 3, q: 10, c: [], poly: true },
     ]);
   });
+
+  it('prefers the first lowercase (non-surname) reading', () => {
+    const raw = [{ s: '查', l: ['n2'], q: 5, f: [
+      { t: '查', i: { y: 'Zhā', n: 'Zha1' }, m: ['surname Zha'], c: [] },
+      { t: '查', i: { y: 'chá', n: 'cha2' }, m: ['to check'], c: [] },
+    ] }];
+    expect(convertHsk(raw)[0]).toMatchObject({ p: 'chá', n: 'cha2', m: ['to check'], poly: true });
+  });
+
+  it('rebuilds tone marks from numeric pinyin (fixes "lu:è", "Aò")', () => {
+    const raw = [
+      { s: '略', l: ['n5'], q: 5, f: [{ t: '略', i: { y: 'lu:è', n: 'lüe4' }, m: ['brief'], c: [] }] },
+      { s: '奥运会', l: ['n4'], q: 6, f: [{ t: '奧運會', i: { y: 'Aò yùn huì', n: 'Ao4 yun4 hui4' }, m: ['Olympics'], c: [] }] },
+    ];
+    expect(convertHsk(raw).map((w) => w.p)).toEqual(['lüè', 'Ào yùn huì']);
+  });
+
+  it('blanks malformed numeric pinyin and cleans the marked form', () => {
+    const raw = [{ s: '不一会儿', l: ['n5'], q: 5, f: [{ t: '不一會兒', i: { y: 'bù yīhuǐr5', n: 'bu4 yīhuǐr5' }, m: ['soon'], c: [] }] }];
+    expect(convertHsk(raw)[0]).toMatchObject({ p: 'bù yīhuǐr', n: '' });
+  });
 });
 
 describe('convertCedict', () => {
