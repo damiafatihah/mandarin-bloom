@@ -1,5 +1,15 @@
 @import './tokens.css';
 
+/* Brush face subset to the only glyphs it ever draws (学海无涯), 2 KB instead of ~100 slices. Licence: OFL. */
+@font-face {
+  font-family: 'Zhi Mang Xing';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/zhi-mang-xing-xuehai.woff2') format('woff2');
+  unicode-range: U+5B66, U+65E0, U+6D77, U+6DAF;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {

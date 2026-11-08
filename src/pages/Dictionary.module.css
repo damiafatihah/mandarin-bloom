@@ -7,6 +7,9 @@
 .input:focus-visible { outline: 3px solid var(--lake-deep); outline-offset: 2px; }
 .note { color: var(--ink-2); }
 .examples { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--ink-2); }
+/* Page ground is --sky, so chips need the paper fill to read as buttons. */
+.examples :global(.chip) { background: var(--paper); }
+.examples :global(.chip:hover) { background: var(--sky-deep); }
 .results { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .row {
   display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
