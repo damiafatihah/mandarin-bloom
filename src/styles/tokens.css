@@ -16,7 +16,7 @@
   --tone-4: #2a5ea8;
   --tone-5: #6b7785;
 
-  --font-latin: 'Josefin Sans', system-ui, sans-serif;
+  --font-latin: 'Josefin Sans', 'Noto Serif SC', system-ui, sans-serif;
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-han: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
   --font-brush: 'Zhi Mang Xing', 'Noto Serif SC', serif;

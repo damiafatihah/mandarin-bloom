@@ -16,7 +16,8 @@ h1, h2, h3 { line-height: 1.15; letter-spacing: 0.02em; margin: 0; }
 h1 { font-size: var(--step-3); }
 h2 { font-size: var(--step-1); }
 p { margin: 0; }
-[lang^='zh'] { font-family: var(--font-han); letter-spacing: 0.02em; }
+/* Latin glyphs (pinyin tone marks) from Cormorant; hanzi from Noto Serif SC. Noto's subset mangles ā/ǎ. */
+[lang^='zh'] { font-family: 'Cormorant Garamond', var(--font-han); letter-spacing: 0.02em; }
 a { color: var(--lake-deep); }
 button { font: inherit; color: inherit; }
 ::selection { background: var(--lake-deep); color: #fff; }
