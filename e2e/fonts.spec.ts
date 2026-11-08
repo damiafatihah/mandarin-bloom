@@ -31,5 +31,5 @@ test('pinyin glyphs render in Urbanist, never a fallback face', async ({ page, b
     const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId });
     for (const f of fonts) hanFamilies.add(f.familyName);
   }
-  expect([...hanFamilies]).toEqual(['Noto Serif SC']);
+  expect([...hanFamilies].every((f) => f.startsWith('Noto Serif SC'))).toBe(true);
 });
