@@ -1,0 +1,30 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import { expect, it, vi } from 'vitest';
+import { QuizRunner } from './QuizRunner';
+import type { Question } from '../lib/quiz';
+
+const qs: Question[] = [
+  { kind: 'hanzi-to-meaning', word: '书', instruction: 'What does this mean?', prompt: '书', choices: ['car', 'book', 'river', 'green'], answer: 1, reveal: '书 · shū · book' },
+  { kind: 'meaning-to-hanzi', word: '河', instruction: 'Which word means…', prompt: 'river', choices: ['河', '书', '金', '近'], answer: 0, reveal: '河 · hé · river' },
+];
+
+it('runs through questions with mouse and keyboard and reports the result', () => {
+  const onAnswer = vi.fn();
+  const onFinish = vi.fn();
+  render(<MemoryRouter><QuizRunner questions={qs} onAnswer={onAnswer} onFinish={onFinish} speechRate={0.9} /></MemoryRouter>);
+
+  fireEvent.click(screen.getByRole('button', { name: 'book' }));
+  expect(screen.getByText(/Correct/)).toBeInTheDocument();
+  expect(onAnswer).toHaveBeenLastCalledWith(qs[0], true);
+
+  fireEvent.click(screen.getByRole('button', { name: 'Next question' }));
+  expect(screen.getByRole('heading', { name: 'river' })).toBeInTheDocument();
+
+  fireEvent.keyDown(window, { key: '2' });
+  expect(screen.getByText('Answer: 河')).toBeInTheDocument();
+  expect(onAnswer).toHaveBeenLastCalledWith(qs[1], false);
+
+  fireEvent.click(screen.getByRole('button', { name: 'See results' }));
+  expect(onFinish).toHaveBeenCalledWith({ score: 1, total: 2, missed: ['河'] });
+});

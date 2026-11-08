@@ -1,0 +1,21 @@
+.card {
+  container-type: inline-size;
+  position: relative; overflow: hidden;
+  display: grid; align-content: start; justify-items: center; gap: 12px;
+  min-height: 380px; padding: 22px 22px 24px;
+  background: var(--paper); border-radius: var(--radius-card); text-align: center;
+}
+.mist { position: absolute; inset: 0 0 auto 0; width: 100%; height: 150px; pointer-events: none; }
+.level { position: relative; justify-self: start; font-family: var(--font-serif); font-style: italic; color: var(--ink-2); }
+.hanzi {
+  position: relative; margin-top: 28px;
+  font-family: var(--font-han); font-weight: 600; line-height: 1.1; letter-spacing: 0.04em;
+  font-size: min(var(--han-xl), calc(80cqi / var(--len)));
+}
+.sound { position: relative; display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.pinyin { font-size: var(--step-1); font-weight: 700; }
+.back { display: grid; gap: 8px; justify-items: center; }
+.meanings { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.mw { color: var(--ink-2); font-size: var(--step--1); }
+.more { font-weight: 700; margin-top: 4px; }
+.actions { margin-top: auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }

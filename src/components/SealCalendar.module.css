@@ -1,0 +1,6 @@
+.grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.day { display: grid; place-items: center; aspect-ratio: 1; }
+.empty {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--sky); color: var(--ink-2); font-size: 0.8rem;
+}

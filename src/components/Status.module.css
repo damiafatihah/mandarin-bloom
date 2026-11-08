@@ -1,0 +1,4 @@
+.loading { display: flex; align-items: center; gap: 14px; padding: 48px 0; color: var(--ink-2); }
+.glyph { font-family: var(--font-brush); font-size: 2.5rem; color: var(--lake-deep); animation: breathe 1.6s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: 0.35; } }
+.error { display: grid; gap: 16px; justify-items: start; padding: 48px 0; }
