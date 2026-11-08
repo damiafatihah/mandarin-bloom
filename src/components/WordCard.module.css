@@ -6,7 +6,21 @@
   background: var(--paper); border-radius: var(--radius-card); text-align: center;
 }
 .mist { position: absolute; inset: 0 0 auto 0; width: 100%; height: 150px; pointer-events: none; }
-.level { position: relative; justify-self: start; font-family: var(--font-serif); font-style: italic; color: var(--ink-2); }
+.top { position: relative; justify-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.level { font-family: var(--font-serif); font-style: italic; color: var(--ink-2); }
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--step--1); font-weight: 700; color: var(--lake-deep);
+}
+.tagKnown { color: var(--ink-2); }
+/* "I know it" cards recede: done, but still readable */
+.card[data-status='known'] { background: #eef6fc; }
+.card[data-status='known'] .hanzi { color: var(--ink-2); }
+.knownMeaning { color: var(--ink-2); }
+.undo {
+  min-height: 44px; padding: 0 14px; border: 0; background: none; cursor: pointer;
+  color: var(--lake-deep); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+}
 .hanzi {
   position: relative; margin-top: 28px;
   font-family: var(--font-han); font-weight: 600; line-height: 1.1; letter-spacing: 0.04em;

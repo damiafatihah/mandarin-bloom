@@ -1,6 +1,7 @@
 import { useId } from 'react';
 
-export function InkMist({ className }: { className?: string }) {
+/** Ink-wash clouds with an optional pale sun (hidden where a label sits in the corner). */
+export function InkMist({ className, sun = true }: { className?: string; sun?: boolean }) {
   const id = `mist-${useId().replace(/[^a-zA-Z0-9-]/g, '')}`;
   return (
     <svg className={className} viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -11,7 +12,7 @@ export function InkMist({ className }: { className?: string }) {
           <feGaussianBlur stdDeviation="6" />
         </filter>
       </defs>
-      <circle cx="292" cy="58" r="30" style={{ fill: '#fff' }} opacity="0.95" />
+      {sun && <circle cx="292" cy="58" r="30" style={{ fill: '#fff' }} opacity="0.95" />}
       <g filter={`url(#${id})`} style={{ fill: 'var(--mist)' }}>
         <ellipse cx="80" cy="120" rx="120" ry="44" opacity="0.55" />
         <ellipse cx="240" cy="92" rx="150" ry="50" opacity="0.45" />
