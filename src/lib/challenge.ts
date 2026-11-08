@@ -17,7 +17,7 @@ export function buildChallengeWords(pool: HskWord[], state: AppState, today: str
     picked.add(s);
   }
   const levels = new Set(state.settings.levels);
-  for (const w of shuffle(pool.filter((x) => levels.has(x.l)), rng)) {
+  for (const w of shuffle(pool.filter((x) => levels.has(x.l) && !x.fn), rng)) {
     if (picked.size >= size) break;
     picked.add(w.s);
   }

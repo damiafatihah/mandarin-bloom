@@ -1,11 +1,11 @@
 import type { AppState, HskWord, Settings } from '../lib/types';
 import { DEFAULT_SETTINGS, initialState } from '../state/defaults';
 
-const w = (s: string, t: string, p: string, n: string, m: string[], l: number, q: number, c: string[] = [], poly = false): HskWord =>
-  ({ s, t, p, n, m, l, q, c, poly });
+const w = (s: string, t: string, p: string, n: string, m: string[], l: number, q: number, c: string[] = [], poly = false, fn = false): HskWord =>
+  ({ s, t, p, n, m, l, q, c, poly, fn });
 
 export const POOL: HskWord[] = [
-  w('了', '了', 'le', 'le5', ['(completed action marker)'], 1, 50, [], true),
+  w('了', '了', 'le', 'le5', ['(completed action marker)'], 1, 50, [], true, true),
   w('书', '書', 'shū', 'shu1', ['book'], 1, 100, ['本']),
   w('进', '進', 'jìn', 'jin4', ['to enter'], 1, 150),
   w('汽车', '汽車', 'qì chē', 'qi4 che1', ['car; automobile'], 1, 200, ['辆']),

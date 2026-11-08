@@ -5,6 +5,7 @@ export type RawHsk = {
   s: string;
   l: string[];
   q: number;
+  p?: string[]; // parts of speech
   f: { t: string; i: { y: string; n: string }; m: string[]; c?: string[] }[];
 };
 
@@ -25,6 +26,11 @@ const isJunk = (m: string) => isVariant(m) || POINTER.test(m);
 /** CEDICT shorthand → plain English for learners. */
 export const expandAbbrev = (m: string) => m.replace(/\bsth\b/g, 'something').replace(/\bsb\b/g, 'someone');
 
+/** Grammatical parts of speech (conjunction, preposition, particle, pronoun, adverb, measure word…). */
+const FUNCTION_POS = new Set(['c', 'cc', 'p', 'u', 'y', 'e', 'r', 'q', 'm', 'd', 'f']);
+const isFunctionWord = (r: RawHsk) =>
+  [...r.s].length === 1 && !!r.p?.length && r.p.every((p) => FUNCTION_POS.has(p));
+
 export function convertHsk(raw: RawHsk[]): HskWord[] {
   const seen = new Set<string>();
   const out: HskWord[] = [];
@@ -41,7 +47,7 @@ export function convertHsk(raw: RawHsk[]): HskWord[] {
     const meanings = f.m.filter((m) => !isVariant(m) && !/^\(Note:/i.test(m));
     out.push({
       s: r.s, t: f.t, ...cleanPinyin(f.i.y, f.i.n), m: (meanings.length ? meanings : f.m).map(expandAbbrev),
-      l: Math.min(...levels), q: r.q, c: f.c ?? [], poly: r.f.length > 1,
+      l: Math.min(...levels), q: r.q, c: f.c ?? [], poly: r.f.length > 1, fn: isFunctionWord(r),
     });
   }
   return out;

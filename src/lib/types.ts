@@ -9,6 +9,7 @@ export type HskWord = {
   q: number; // frequency rank, lower = more common
   c: string[]; // classifiers / measure words
   poly: boolean; // has more than one reading
+  fn: boolean; // single-character grammar/function word (而, 却, 呀): kept out of daily picks
 };
 
 export type DictEntry = {

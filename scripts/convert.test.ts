@@ -13,8 +13,8 @@ describe('convertHsk', () => {
       ] },
     ];
     expect(convertHsk(raw)).toEqual([
-      { s: '爱好', t: '愛好', p: 'ài hào', n: 'ai4 hao4', m: ['to like'], l: 1, q: 4902, c: ['个'], poly: false },
-      { s: '啊', t: '啊', p: 'a', n: 'a5', m: ['ah'], l: 3, q: 10, c: [], poly: true },
+      { s: '爱好', t: '愛好', p: 'ài hào', n: 'ai4 hao4', m: ['to like'], l: 1, q: 4902, c: ['个'], poly: false, fn: false },
+      { s: '啊', t: '啊', p: 'a', n: 'a5', m: ['ah'], l: 3, q: 10, c: [], poly: true, fn: false },
     ]);
   });
 
@@ -124,5 +124,18 @@ describe('manual meaning fixes', () => {
     const out = fillMeaningsFromCedict(hsk, tsv);
     expect(out[0].m).toEqual(MANUAL_MEANINGS['无可厚非']);
     expect(out[1].m).toEqual(MANUAL_MEANINGS['火暴']);
+  });
+});
+
+describe('function-word flag', () => {
+  it('marks single-character words whose every part of speech is grammatical', () => {
+    const out = convertHsk([
+      { s: '却', l: ['n4'], q: 1, p: ['d'], f: [{ t: '卻', i: { y: 'què', n: 'que4' }, m: ['but'], c: [] }] },
+      { s: '担心', l: ['n4'], q: 2, p: ['v'], f: [{ t: '擔心', i: { y: 'dān xīn', n: 'dan1 xin1' }, m: ['to worry'], c: [] }] },
+      { s: '杀', l: ['n5'], q: 3, p: ['v'], f: [{ t: '殺', i: { y: 'shā', n: 'sha1' }, m: ['to kill'], c: [] }] },
+      { s: '甚至', l: ['n4'], q: 4, p: ['d', 'c'], f: [{ t: '甚至', i: { y: 'shèn zhì', n: 'shen4 zhi4' }, m: ['even'], c: [] }] },
+      { s: '岸', l: ['n4'], q: 5, f: [{ t: '岸', i: { y: 'àn', n: 'an4' }, m: ['shore'], c: [] }] },
+    ]);
+    expect(out.map((w) => [w.s, w.fn])).toEqual([['却', true], ['担心', false], ['杀', false], ['甚至', false], ['岸', false]]);
   });
 });

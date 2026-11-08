@@ -74,7 +74,7 @@ describe('buildQuestions', () => {
 });
 
 describe('words with malformed numeric pinyin (n === "")', () => {
-  const odd = { s: '不一会儿', t: '不一會兒', p: 'bù yīhuǐr', n: '', m: ['soon'], l: 5, q: 9000, c: [], poly: false };
+  const odd = { s: '不一会儿', t: '不一會兒', p: 'bù yīhuǐr', n: '', m: ['soon'], l: 5, q: 9000, c: [], poly: false, fn: false };
   it('never gets a tone question', () => {
     expect(availableKinds(odd, true)).not.toContain('hanzi-to-pinyin');
   });
@@ -100,7 +100,7 @@ describe('real-data invariants', () => {
 });
 
 describe('no ambiguous options', () => {
-  const mk = (s: string, p: string, n: string, m: string[]): HskWord => ({ s, t: s, p, n, m, l: 1, q: 1, c: [], poly: false });
+  const mk = (s: string, p: string, n: string, m: string[]): HskWord => ({ s, t: s, p, n, m, l: 1, q: 1, c: [], poly: false, fn: false });
   const er = mk('二', 'èr', 'er4', ['two']);
   const liang = mk('两', 'liǎng', 'liang3', ['two; both', 'ounce']);
   const pool = [er, liang, ...POOL];
@@ -122,7 +122,7 @@ describe('no ambiguous options', () => {
 });
 
 describe('shortMeaning (quiz prompt gloss)', () => {
-  const mk = (m: string[]): HskWord => ({ s: 'x', t: 'x', p: 'x', n: 'x1', m, l: 1, q: 1, c: [], poly: false });
+  const mk = (m: string[]): HskWord => ({ s: 'x', t: 'x', p: 'x', n: 'x1', m, l: 1, q: 1, c: [], poly: false, fn: false });
   it.each([
     [['(bound form) calm; peaceful'], 'calm'],
     [['(coll.) father'], 'father'],

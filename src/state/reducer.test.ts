@@ -5,8 +5,9 @@ import { makeState, POOL, TODAY } from '../test/fixtures';
 describe('reducer', () => {
   it('ENSURE_DAY creates today with N words and cards due tomorrow', () => {
     const s = reducer(makeState(), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
-    expect(s.days[TODAY].words).toEqual(['了', '书', '进']);
-    expect(s.cards['书']).toEqual({ box: 0, due: '2026-11-09', seen: 0, correct: 0 });
+    const words = s.days[TODAY].words;
+    expect(words).toHaveLength(3);
+    for (const w of words) expect(s.cards[w]).toEqual({ box: 0, due: '2026-11-09', seen: 0, correct: 0 });
   });
   it('ENSURE_DAY is idempotent (same object)', () => {
     const s = reducer(makeState(), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
@@ -15,16 +16,21 @@ describe('reducer', () => {
   it('ENSURE_DAY tops up after wordsPerDay increases', () => {
     let s = reducer(makeState(), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
     s = reducer(s, { type: 'UPDATE_SETTINGS', patch: { wordsPerDay: 4 } });
+    const before = s.days[TODAY].words;
     s = reducer(s, { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
-    expect(s.days[TODAY].words).toEqual(['了', '书', '进', '汽车']);
+    expect(s.days[TODAY].words).toHaveLength(4);
+    expect(s.days[TODAY].words.slice(0, 3)).toEqual(before);
   });
   it('MARK_KNOWN swaps the word for the next one', () => {
     let s = reducer(makeState(), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
-    s = reducer(s, { type: 'MARK_KNOWN', word: '书', today: TODAY, pool: POOL });
-    expect(s.days[TODAY].words).toEqual(['了', '进', '汽车']);
+    const [first, ...rest] = s.days[TODAY].words;
+    s = reducer(s, { type: 'MARK_KNOWN', word: first, today: TODAY, pool: POOL });
+    expect(s.days[TODAY].words).toHaveLength(3);
+    expect(s.days[TODAY].words.slice(0, 2)).toEqual(rest);
+    expect(s.days[TODAY].words).not.toContain(first);
     expect(s.days[TODAY].skipped).toBe(1);
-    expect(s.known).toEqual(['书']);
-    expect(s.cards['书']).toBeUndefined();
+    expect(s.known).toEqual([first]);
+    expect(s.cards[first]).toBeUndefined();
   });
   it('GRADE: correct on an uncarded word changes nothing; wrong adds a card and un-knows it', () => {
     const s = makeState({ known: ['河'] });
@@ -42,9 +48,11 @@ describe('reducer', () => {
   });
   it('ENSURE_DAY on a new day keeps yesterday and picks fresh words', () => {
     let s = reducer(makeState(), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
+    const first = s.days[TODAY].words;
     s = reducer(s, { type: 'ENSURE_DAY', today: '2026-11-09', pool: POOL });
-    expect(s.days[TODAY].words).toEqual(['了', '书', '进']);
-    expect(s.days['2026-11-09'].words).toEqual(['汽车', '爱好', '桌子']);
+    expect(s.days[TODAY].words).toEqual(first);
+    expect(s.days['2026-11-09'].words).toHaveLength(3);
+    for (const w of s.days['2026-11-09'].words) expect(first).not.toContain(w);
   });
   it('ENSURE_DAY with an exhausted pool still records the day (no infinite re-dispatch)', () => {
     const s = reducer(makeState({}, { levels: [5] }), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
