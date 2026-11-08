@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dayProgress, selectNewWords } from './daily';
+import { dayProgress, goalSummary, selectNewWords } from './daily';
 import { makeState, POOL, TODAY } from '../test/fixtures';
 
 const byS = new Map(POOL.map((w) => [w.s, w]));
@@ -55,5 +55,28 @@ describe('dayProgress (both "I know it" and "Teach me" count toward the daily go
   });
   it('no day yet → nothing done, goal not met', () => {
     expect(dayProgress(undefined, 5)).toEqual({ goal: 5, total: 0, done: 0, learned: 0, known: 0, goalMet: false });
+  });
+});
+
+describe('goalSummary (what the Me ring shows)', () => {
+  const day = (n: number, done: number) => ({
+    words: Array.from({ length: n }, (_, i) => `w${i}`),
+    handled: Object.fromEntries(Array.from({ length: done }, (_, i) => [`w${i}`, 'taught' as const])),
+  });
+
+  it('5 dealt, 3 done, goal lowered to 3 → ring full at 3/3, 2 optional words left', () => {
+    expect(goalSummary(dayProgress(day(5, 3), 3))).toEqual({ target: 3, towardGoal: 3, ratio: 1, optionalLeft: 2, extraDone: 0, met: true });
+  });
+  it('5 dealt, 2 done, goal 5 → 2/5', () => {
+    expect(goalSummary(dayProgress(day(5, 2), 5))).toEqual({ target: 5, towardGoal: 2, ratio: 0.4, optionalLeft: 0, extraDone: 0, met: false });
+  });
+  it('learned more than the goal → full, with the extra counted', () => {
+    expect(goalSummary(dayProgress(day(6, 5), 3))).toMatchObject({ target: 3, towardGoal: 3, ratio: 1, extraDone: 2, optionalLeft: 1, met: true });
+  });
+  it('no words dealt yet → 0 of the goal', () => {
+    expect(goalSummary(dayProgress(undefined, 5))).toEqual({ target: 5, towardGoal: 0, ratio: 0, optionalLeft: 0, extraDone: 0, met: false });
+  });
+  it('fewer words available than the goal → the goal is what is available', () => {
+    expect(goalSummary(dayProgress(day(2, 1), 5))).toMatchObject({ target: 2, towardGoal: 1, ratio: 0.5, met: false });
   });
 });

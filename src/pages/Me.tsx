@@ -10,7 +10,7 @@ import { VoicePicker } from '../components/VoicePicker';
 import { Info } from '../components/icons';
 import { PageHeader } from '../components/PageHeader';
 import { Seal } from '../components/Seal';
-import { dayProgress } from '../lib/daily';
+import { dayProgress, goalSummary } from '../lib/daily';
 import styles from './Me.module.css';
 
 export default function Me() {
@@ -42,9 +42,15 @@ export default function Me() {
     },
   ];
   const openStat = stats.find((s) => s.label === open);
-  const goal = dayProgress(state.days[today], state.settings.wordsPerDay);
-  const shownTotal = Math.max(goal.total, state.settings.wordsPerDay);
-  const ratio = shownTotal ? Math.min(1, goal.done / shownTotal) : 0;
+  const goal = goalSummary(dayProgress(state.days[today], state.settings.wordsPerDay));
+  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  const goalNote = !goal.met
+    ? `Learn or skip ${plural(goal.target - goal.towardGoal, 'more word')} on Today.`
+    : goal.optionalLeft > 0
+      ? `Goal reached. ${plural(goal.optionalLeft, 'optional word')} left on Today.`
+      : goal.extraDone > 0
+        ? `Goal reached, plus ${goal.extraDone} extra. 好样的！`
+        : 'Goal reached. 好样的！';
   const R = 34;
   const C = 2 * Math.PI * R;
 
@@ -55,14 +61,14 @@ export default function Me() {
       <section className={styles.goal} aria-labelledby="goal-h">
         <svg className={styles.ring} viewBox="0 0 80 80" aria-hidden="true">
           <circle cx="40" cy="40" r={R} className={styles.ringTrack} />
-          <circle cx="40" cy="40" r={R} className={styles.ringFill} strokeDasharray={`${C * ratio} ${C}`} />
+          <circle cx="40" cy="40" r={R} className={styles.ringFill} strokeDasharray={`${C * goal.ratio} ${C}`} />
         </svg>
         <div className={styles.goalText}>
           <h2 id="goal-h"><span className="zh-title" lang="zh">今日目标</span> <span className="en-sub">Today’s goal</span></h2>
-          <p className={styles.goalCount}><strong className="num">{goal.done}</strong> / {shownTotal} words done today</p>
-          <p className={styles.goalNote}>{goal.goalMet ? 'Goal reached. 好样的！' : `Learn or skip ${state.settings.wordsPerDay} words a day on Today.`}</p>
+          <p className={styles.goalCount}><strong className="num">{goal.towardGoal}</strong> / {goal.target} words done today</p>
+          <p className={styles.goalNote}>{goalNote}</p>
         </div>
-        {goal.goalMet && <Seal text="完" size={44} title="Today’s goal reached" />}
+        {goal.met && <Seal text="完" size={44} title="Today’s goal reached" />}
       </section>
 
       <div className={styles.statsBlock}>
@@ -92,7 +98,7 @@ export default function Me() {
       <section className={styles.section} aria-labelledby="daily-h">
         <h2 id="daily-h"><span className="zh-title" lang="zh">每日新词</span> <span className="en-sub">Daily words</span></h2>
         <WordsPerDayPicker value={state.settings.wordsPerDay} onChange={(n) => set({ wordsPerDay: n })} />
-        <p className={styles.note}>Raising this adds words today. Lowering it applies from tomorrow.</p>
+        <p className={styles.note}>Changes today’s goal straight away. Raising it adds words now; lowering it never removes words you already have.</p>
       </section>
 
       <section className={styles.section} aria-labelledby="levels-h">

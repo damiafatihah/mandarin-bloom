@@ -28,3 +28,26 @@ export function dayProgress(day: DayRecord | undefined, goal: number): DayProgre
   const done = learned + known;
   return { goal, total: words.length, done, learned, known, goalMet: words.length > 0 && done >= Math.min(goal, words.length) };
 }
+
+export type GoalSummary = {
+  target: number; // the goal for today (never more than the words available)
+  towardGoal: number; // done, capped at the target
+  ratio: number; // 0–1, for the ring
+  optionalLeft: number; // undone words beyond the goal
+  extraDone: number; // words done beyond the goal
+  met: boolean;
+};
+
+/** Progress toward the daily goal itself (not toward every card dealt today). */
+export function goalSummary(p: DayProgress): GoalSummary {
+  const target = p.total > 0 ? Math.min(p.goal, p.total) : p.goal;
+  const towardGoal = Math.min(p.done, target);
+  return {
+    target,
+    towardGoal,
+    ratio: target ? towardGoal / target : 0,
+    optionalLeft: Math.max(0, p.total - Math.max(p.done, target)),
+    extraDone: Math.max(0, p.done - target),
+    met: p.goalMet,
+  };
+}

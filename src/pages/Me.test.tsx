@@ -49,3 +49,32 @@ it('explanations match what the app does', () => {
   expect(review).toMatch(/Teach me/);
   expect(review).toMatch(/wrong/);
 });
+
+import { STORAGE_KEY } from '../state/storage';
+import { makeState } from '../test/fixtures';
+import { dateKey } from '../lib/dates';
+
+it('lowering words-per-day mid-day: ring shows the new goal as reached, extras as optional', () => {
+  const today = dateKey();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(makeState(
+    { days: { [today]: { words: ['书', '河', '金', '近', '进'], handled: { 书: 'taught', 河: 'taught', 金: 'known' } } } },
+    { wordsPerDay: 5 },
+  )));
+  renderMe();
+  const goal = () => screen.getByRole('region', { name: /Today’s goal/ });
+  expect(goal()).toHaveTextContent('3 / 5 words done today');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Fewer words' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Fewer words' }));
+  expect(goal()).toHaveTextContent('3 / 3 words done today');
+  expect(goal()).toHaveTextContent('Goal reached');
+  expect(goal()).toHaveTextContent('2 optional words left on Today');
+  expect(screen.getByRole('img', { name: 'Today’s goal reached' })).toBeInTheDocument();
+});
+
+it('the words-per-day note says what really happens', () => {
+  renderMe();
+  expect(screen.getByText(/Changes today’s goal straight away/)).toHaveTextContent(
+    'Changes today’s goal straight away. Raising it adds words now; lowering it never removes words you already have.',
+  );
+});

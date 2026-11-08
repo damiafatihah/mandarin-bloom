@@ -243,3 +243,24 @@ test('routing: unknown paths go home, deep links work after onboarding', async (
   await expect(page.getByRole('searchbox')).toHaveValue('书');
   expect(errors).toEqual([]);
 });
+
+test('lowering words-per-day mid-day: goal reached now, extra cards optional, nothing removed', async ({ page }) => {
+  await onboard(page, '5');
+  const cards = page.getByRole('article');
+  for (const i of [0, 1, 2]) await cards.nth(i).getByRole('button', { name: i === 2 ? 'I know it' : 'Teach me' }).click();
+
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  const goal = page.getByRole('region', { name: /Today’s goal/ });
+  await expect(goal).toContainText('3 / 5 words done today');
+  await page.getByRole('button', { name: 'Fewer words' }).click();
+  await page.getByRole('button', { name: 'Fewer words' }).click();
+  await expect(goal).toContainText('3 / 3 words done today');
+  await expect(goal).toContainText('2 optional words left on Today');
+
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await expect(cards).toHaveCount(5);
+  await expect(page.getByText(/words done today/)).toHaveText('3 of 5 words done today');
+  await expect(page.getByText(/Daily goal of 3 done/)).toBeVisible();
+  for (const i of [3, 4]) await cards.nth(i).getByRole('button', { name: 'Teach me' }).click();
+  await expect(page.getByRole('button', { name: 'Learn 3 more' })).toBeVisible();
+});
