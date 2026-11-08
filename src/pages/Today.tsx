@@ -41,6 +41,7 @@ export default function Today() {
   const allDone = progress.total > 0 && progress.done === progress.total;
   const moreAvailable = allDone ? selectNewWords(pool, state, today, wordsPerDay).length : 0;
   const due = Object.values(state.cards).filter((c) => c.due <= today).length;
+  const challengeAnswered = day?.challengeRun?.answers.filter((x) => x != null).length ?? 0;
   const streakDays = streak(Object.keys(state.days).filter((k) => state.days[k].challenge), today);
 
   /** On the phone carousel, glide to the next card still waiting for a choice. */
@@ -143,7 +144,9 @@ export default function Today() {
                   <span className={styles.taskSub}>
                     {day?.challenge
                       ? `Daily challenge · done ${day.challenge.score}/${day.challenge.total}`
-                      : 'Daily challenge'}
+                      : challengeAnswered > 0
+                        ? `Daily challenge · ${challengeAnswered} of ${day?.challengeWords?.length ?? 10} answered, tap to continue`
+                        : 'Daily challenge'}
                   </span>
                 </span>
                 {day?.challenge

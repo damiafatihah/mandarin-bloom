@@ -6,7 +6,7 @@ import { dateKey } from '../lib/dates';
 import { buildQuestions } from '../lib/quiz';
 import { buildChallengeWords } from '../lib/challenge';
 import { speechSupported } from '../lib/speech';
-import { QuizRunner, type QuizResult } from '../components/QuizRunner';
+import { QuizRunner, tally, type QuizResult } from '../components/QuizRunner';
 import { QuizResultView } from '../components/QuizResultView';
 import { Loading, LoadError } from '../components/Status';
 import { Landscape } from '../components/art/Scenery';
@@ -30,8 +30,9 @@ export default function Challenge() {
   if (!pool) return <Loading label="Preparing today’s challenge…" />;
 
   const sealText = day?.words[0]?.[0] ?? '学';
+  const run = day?.challengeRun;
   if (result || day?.challenge) {
-    const r = result ?? { ...day!.challenge!, missed: [] };
+    const r = result ?? { ...day!.challenge!, missed: run ? tally(questions, run.answers).missed : [] };
     return (
       <QuizResultView heading="每日挑战 complete" score={r.score} total={r.total} missed={r.missed} sealText={sealText}>
         <Link to="/" className="btn btn--primary">Back to today</Link>
@@ -40,7 +41,9 @@ export default function Challenge() {
     );
   }
 
-  if (!playing) {
+  // A challenge already under way resumes where it was left; only a fresh one shows the intro.
+  const inProgress = !!words && !!run && (run.index > 0 || run.answers.some((x) => x != null));
+  if (!playing && !inProgress) {
     return (
       <section className={styles.intro} aria-labelledby="ch-h">
         <Landscape variant="wide" seed="challenge" pagoda sun birds pagodaRange={[0.42, 0.58]} sunX={0.6} className={`${styles.art} fade-bottom`} />
@@ -66,7 +69,11 @@ export default function Challenge() {
     <QuizRunner
       questions={questions}
       speechRate={state.settings.speechRate}
-      onAnswer={(q, correct) => dispatch({ type: 'GRADE', word: q.word, correct, today })}
+      startIndex={run?.index ?? 0}
+      startAnswers={run?.answers ?? []}
+      onAnswer={(q, correct, index, choice) =>
+        dispatch({ type: 'ANSWER_CHALLENGE', today, index, choice, word: q.word, correct })}
+      onAdvance={(index) => dispatch({ type: 'ADVANCE_CHALLENGE', today, index })}
       onFinish={(r) => {
         dispatch({ type: 'FINISH_CHALLENGE', today, score: r.score, total: r.total });
         setResult(r);

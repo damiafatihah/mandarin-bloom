@@ -10,10 +10,29 @@ export type QuizResult = { score: number; total: number; missed: string[] };
 
 type Props = {
   questions: Question[];
-  onAnswer: (q: Question, correct: boolean) => void;
+  /** Called once per question when it is answered. */
+  onAnswer: (q: Question, correct: boolean, index: number, choice: number) => void;
   onFinish: (r: QuizResult) => void;
+  /** Called when moving on to question `index` (for saving progress). */
+  onAdvance?: (index: number) => void;
+  /** Resume support: the question to show and the choices already made (null = unanswered). */
+  startIndex?: number;
+  startAnswers?: (number | null)[];
   speechRate: number;
 };
+
+/** Score and missed words from the choices made so far. */
+export function tally(questions: Question[], answers: (number | null)[]): QuizResult {
+  let score = 0;
+  const missed: string[] = [];
+  questions.forEach((q, i) => {
+    const a = answers[i];
+    if (a == null) return;
+    if (a === q.answer) score++;
+    else missed.push(q.word);
+  });
+  return { score, total: questions.length, missed };
+}
 
 /** The question asked in Chinese, above the English instruction. */
 const ASK_ZH: Record<QuestionKind, string> = {
@@ -42,13 +61,12 @@ function Reveal({ text }: { text: string }) {
   );
 }
 
-export function QuizRunner({ questions, onAnswer, onFinish, speechRate }: Props) {
-  const [index, setIndex] = useState(0);
-  const [picked, setPicked] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [missed, setMissed] = useState<string[]>([]);
+export function QuizRunner({ questions, onAnswer, onFinish, onAdvance, startIndex = 0, startAnswers, speechRate }: Props) {
+  const [index, setIndex] = useState(() => Math.min(Math.max(0, startIndex), Math.max(0, questions.length - 1)));
+  const [answers, setAnswers] = useState<(number | null)[]>(() => startAnswers ?? []);
   const nextRef = useRef<HTMLButtonElement>(null);
   const q = questions[index];
+  const picked = answers[index] ?? null;
   const answered = picked !== null;
   const isLast = index === questions.length - 1;
 
@@ -62,21 +80,22 @@ export function QuizRunner({ questions, onAnswer, onFinish, speechRate }: Props)
 
   function choose(i: number) {
     if (answered || !q) return;
-    const correct = i === q.answer;
-    setPicked(i);
-    if (correct) setScore((s) => s + 1);
-    else setMissed((m) => [...m, q.word]);
-    onAnswer(q, correct);
+    setAnswers((a) => {
+      const n = [...a];
+      n[index] = i;
+      return n;
+    });
+    onAnswer(q, i === q.answer, index, i);
     speak(q.word, speechRate);
   }
 
   function next() {
     if (isLast) {
-      onFinish({ score, total: questions.length, missed });
+      onFinish(tally(questions, answers));
       return;
     }
-    setIndex((i) => i + 1);
-    setPicked(null);
+    setIndex(index + 1);
+    onAdvance?.(index + 1);
   }
 
   useEffect(() => {

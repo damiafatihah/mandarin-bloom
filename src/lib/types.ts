@@ -37,6 +37,8 @@ export type DayRecord = {
   words: string[]; // today's cards, fixed for the day (grows only via "learn more")
   handled?: Record<string, DailyChoice>; // which of today's words got "Teach me" / "I know it"
   challengeWords?: string[];
+  /** The challenge in progress: question showing and the choice picked for each answered question (null = not yet). */
+  challengeRun?: { index: number; answers: (number | null)[] };
   challenge?: { score: number; total: number };
 };
 

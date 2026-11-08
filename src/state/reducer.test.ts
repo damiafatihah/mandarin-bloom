@@ -117,3 +117,35 @@ describe('reducer', () => {
     expect(s.onboarded).toBe(true);
   });
 });
+
+describe('challenge progress is saved and resumable', () => {
+  const start = () => reducer(makeState(), { type: 'START_CHALLENGE', today: TODAY, words: ['书', '河', '金'] });
+
+  it('START_CHALLENGE begins at question 1 with no answers', () => {
+    expect(start().days[TODAY].challengeRun).toEqual({ index: 0, answers: [] });
+  });
+
+  it('ANSWER_CHALLENGE records the choice and grades the word exactly once', () => {
+    let s = start();
+    s = reducer(s, { type: 'ANSWER_CHALLENGE', today: TODAY, index: 0, choice: 2, word: '书', correct: false });
+    expect(s.days[TODAY].challengeRun).toEqual({ index: 0, answers: [2] });
+    expect(s.cards['书']).toMatchObject({ seen: 1, correct: 0 });
+    // answering the same question again (e.g. after coming back) changes nothing
+    const again = reducer(s, { type: 'ANSWER_CHALLENGE', today: TODAY, index: 0, choice: 1, word: '书', correct: true });
+    expect(again).toBe(s);
+  });
+
+  it('ADVANCE_CHALLENGE moves to the next question and keeps earlier answers', () => {
+    let s = start();
+    s = reducer(s, { type: 'ANSWER_CHALLENGE', today: TODAY, index: 0, choice: 1, word: '书', correct: true });
+    s = reducer(s, { type: 'ADVANCE_CHALLENGE', today: TODAY, index: 1 });
+    s = reducer(s, { type: 'ANSWER_CHALLENGE', today: TODAY, index: 1, choice: 3, word: '河', correct: false });
+    expect(s.days[TODAY].challengeRun).toEqual({ index: 1, answers: [1, 3] });
+  });
+
+  it('works for a challenge started before progress was saved (no run yet)', () => {
+    const s0 = makeState({ days: { [TODAY]: { words: [], challengeWords: ['书'] } } });
+    const s = reducer(s0, { type: 'ANSWER_CHALLENGE', today: TODAY, index: 0, choice: 0, word: '书', correct: false });
+    expect(s.days[TODAY].challengeRun).toEqual({ index: 0, answers: [0] });
+  });
+});
