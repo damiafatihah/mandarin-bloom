@@ -4,12 +4,20 @@ import { seededRng, shuffle } from './rng';
 
 export const CHALLENGE_SIZE = 10;
 
-/** Up to 4 of today's words, then due reviews (oldest first) up to 8, then random words from the chosen levels. */
+/**
+ * Up to 4 of today's words (ones learned with "Teach me" first), then due reviews (oldest first) up to 8,
+ * then random words from the chosen levels. Words marked "I know it" are never quizzed.
+ */
 export function buildChallengeWords(pool: HskWord[], state: AppState, today: string, size = CHALLENGE_SIZE): string[] {
   const rng = seededRng(`challenge-words:${today}`);
-  const picked = new Set<string>(shuffle(state.days[today]?.words ?? [], rng).slice(0, 4));
+  const known = new Set(state.known);
+  const day = state.days[today];
+  const todays = (day?.words ?? []).filter((w) => !known.has(w));
+  const taught = todays.filter((w) => day?.handled?.[w] === 'taught');
+  const undecided = todays.filter((w) => !day?.handled?.[w]);
+  const picked = new Set<string>([...shuffle(taught, rng), ...shuffle(undecided, rng)].slice(0, 4));
   const due = Object.entries(state.cards)
-    .filter(([s, c]) => c.due <= today && !picked.has(s))
+    .filter(([s, c]) => c.due <= today && !picked.has(s) && !known.has(s))
     .sort(([, a], [, b]) => a.due.localeCompare(b.due) || a.box - b.box)
     .map(([s]) => s);
   for (const s of due) {
@@ -17,7 +25,7 @@ export function buildChallengeWords(pool: HskWord[], state: AppState, today: str
     picked.add(s);
   }
   const levels = new Set(state.settings.levels);
-  for (const w of shuffle(pool.filter((x) => levels.has(x.l) && !x.fn), rng)) {
+  for (const w of shuffle(pool.filter((x) => levels.has(x.l) && !x.fn && !known.has(x.s)), rng)) {
     if (picked.size >= size) break;
     picked.add(w.s);
   }
@@ -40,7 +48,7 @@ export function pickPracticeWords(pool: HskWord[], state: AppState, o: PracticeO
   let candidates =
     o.source === 'due' ? fromCards((d) => d <= o.today)
     : o.source === 'deck' ? fromCards(() => true)
-    : pool.filter((w) => levels.has(w.l));
+    : pool.filter((w) => levels.has(w.l) && !state.known.includes(w.s));
   if (o.kind) {
     const kind = o.kind;
     candidates = candidates.filter((w) => availableKinds(w, o.speech).includes(kind));

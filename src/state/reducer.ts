@@ -1,4 +1,4 @@
-import type { AppState, DayRecord, HskWord, Settings } from '../lib/types';
+import type { AppState, DailyChoice, DayRecord, HskWord, Settings } from '../lib/types';
 import { addDays } from '../lib/dates';
 import { gradeCard, newCard } from '../lib/srs';
 import { selectNewWords } from '../lib/daily';
@@ -8,7 +8,10 @@ export type Action =
   | { type: 'COMPLETE_ONBOARDING'; settings: Partial<Settings> }
   | { type: 'UPDATE_SETTINGS'; patch: Partial<Settings> }
   | { type: 'ENSURE_DAY'; today: string; pool: HskWord[] }
-  | { type: 'MARK_KNOWN'; word: string; today: string; pool: HskWord[] }
+  | { type: 'TEACH'; word: string; today: string }
+  | { type: 'MARK_KNOWN'; word: string; today: string }
+  | { type: 'UNDO_DAILY'; word: string; today: string }
+  | { type: 'LEARN_MORE'; today: string; pool: HskWord[]; count: number }
   | { type: 'ADD_TO_DECK'; word: string; today: string }
   | { type: 'START_CHALLENGE'; today: string; words: string[] }
   | { type: 'GRADE'; word: string; correct: boolean; today: string }
@@ -20,9 +23,21 @@ function withDay(s: AppState, today: string, patch: Partial<DayRecord>): AppStat
   return { ...s, days: { ...s.days, [today]: { ...day, ...patch } } };
 }
 
-function addCards(cards: AppState['cards'], words: string[], due: string): AppState['cards'] {
+/** Record (or clear) the learner's choice for one of today's cards. Other words are left alone. */
+function setChoice(s: AppState, today: string, word: string, choice: DailyChoice | null): AppState {
+  const day = s.days[today];
+  if (!day?.words.includes(word)) return s;
+  const handled = { ...(day.handled ?? {}) };
+  if (choice) handled[word] = choice;
+  else delete handled[word];
+  return withDay(s, today, { handled });
+}
+
+/** Remove a review card only if it has no progress yet (never destroy real review history). */
+function dropFreshCard(cards: AppState['cards'], word: string): AppState['cards'] {
+  if (!cards[word] || cards[word].seen > 0) return cards;
   const next = { ...cards };
-  for (const w of words) if (!next[w]) next[w] = newCard(due);
+  delete next[word];
   return next;
 }
 
@@ -37,19 +52,38 @@ export function reducer(s: AppState, a: Action): AppState {
       const current = s.days[a.today]?.words ?? [];
       const add = selectNewWords(a.pool, s, a.today, s.settings.wordsPerDay - current.length);
       if (exists && add.length === 0) return s;
-      const next = withDay(s, a.today, { words: [...current, ...add] });
-      return { ...next, cards: addCards(s.cards, add, addDays(a.today, 1)) };
+      // Words enter reviews only when the learner taps "Teach me" (TEACH), not when they are dealt.
+      return withDay(s, a.today, { words: [...current, ...add] });
+    }
+    case 'TEACH': {
+      const next = setChoice(s, a.today, a.word, 'taught');
+      return {
+        ...next,
+        known: next.known.filter((k) => k !== a.word),
+        cards: next.cards[a.word] ? next.cards : { ...next.cards, [a.word]: newCard(addDays(a.today, 1)) },
+      };
     }
     case 'MARK_KNOWN': {
-      const cards = { ...s.cards };
-      delete cards[a.word];
-      const known = s.known.includes(a.word) ? s.known : [...s.known, a.word];
-      let next: AppState = { ...s, cards, known };
-      const day = s.days[a.today];
-      if (day?.words.includes(a.word)) {
-        next = withDay(next, a.today, { words: day.words.filter((w) => w !== a.word), skipped: (day.skipped ?? 0) + 1 });
-      }
-      return reducer(next, { type: 'ENSURE_DAY', today: a.today, pool: a.pool });
+      const next = setChoice(s, a.today, a.word, 'known');
+      return {
+        ...next,
+        known: next.known.includes(a.word) ? next.known : [...next.known, a.word],
+        cards: dropFreshCard(next.cards, a.word),
+      };
+    }
+    case 'UNDO_DAILY': {
+      const prev = s.days[a.today]?.handled?.[a.word];
+      if (!prev) return s;
+      const next = setChoice(s, a.today, a.word, null);
+      return prev === 'known'
+        ? { ...next, known: next.known.filter((k) => k !== a.word) }
+        : { ...next, cards: dropFreshCard(next.cards, a.word) };
+    }
+    case 'LEARN_MORE': {
+      const day = s.days[a.today] ?? { words: [] };
+      const add = selectNewWords(a.pool, s, a.today, a.count);
+      if (!add.length) return s;
+      return withDay(s, a.today, { words: [...day.words, ...add] });
     }
     case 'ADD_TO_DECK':
       if (s.cards[a.word]) return s;

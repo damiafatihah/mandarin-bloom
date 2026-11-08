@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { selectNewWords } from './daily';
+import { dayProgress, selectNewWords } from './daily';
 import { makeState, POOL, TODAY } from '../test/fixtures';
 
 const byS = new Map(POOL.map((w) => [w.s, w]));
@@ -34,5 +34,26 @@ describe('selectNewWords', () => {
   it('respects levels and returns [] for n <= 0', () => {
     expect(selectNewWords(POOL, makeState({}, { levels: [5, 7] }), TODAY, 5).sort()).toEqual(['一帆风顺', '犹豫'].sort());
     expect(selectNewWords(POOL, makeState(), TODAY, 0)).toEqual([]);
+  });
+});
+
+describe('dayProgress (both "I know it" and "Teach me" count toward the daily goal)', () => {
+  it('counts learned + already-known out of today’s words', () => {
+    const day = { words: ['a', 'b', 'c', 'd', 'e'], handled: { a: 'taught', b: 'known', c: 'taught' } as const };
+    expect(dayProgress(day, 5)).toEqual({ goal: 5, total: 5, done: 3, learned: 2, known: 1, goalMet: false });
+  });
+  it('goal is met when every one of today’s words is handled', () => {
+    const day = { words: ['a', 'b'], handled: { a: 'taught', b: 'known' } as const };
+    expect(dayProgress(day, 2).goalMet).toBe(true);
+  });
+  it('after "learn more", the goal stays met while extra words are optional', () => {
+    const day = { words: ['a', 'b', 'c', 'd'], handled: { a: 'taught', b: 'known' } as const };
+    expect(dayProgress(day, 2)).toMatchObject({ total: 4, done: 2, goalMet: true });
+  });
+  it('a short pool (fewer words than the goal) is met when all available words are done', () => {
+    expect(dayProgress({ words: ['a'], handled: { a: 'taught' } }, 5).goalMet).toBe(true);
+  });
+  it('no day yet → nothing done, goal not met', () => {
+    expect(dayProgress(undefined, 5)).toEqual({ goal: 5, total: 0, done: 0, learned: 0, known: 0, goalMet: false });
   });
 });

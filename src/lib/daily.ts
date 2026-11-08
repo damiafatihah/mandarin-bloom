@@ -1,4 +1,4 @@
-import type { AppState, HskWord } from './types';
+import type { AppState, DayRecord, HskWord } from './types';
 import { seededRng, shuffle } from './rng';
 
 /**
@@ -15,4 +15,16 @@ export function selectNewWords(pool: HskWord[], state: AppState, today: string, 
   const content = shuffle(eligible.filter((w) => !w.fn), rng);
   const grammar = shuffle(eligible.filter((w) => w.fn), rng);
   return [...content, ...grammar].slice(0, n).map((w) => w.s);
+}
+
+export type DayProgress = { goal: number; total: number; done: number; learned: number; known: number; goalMet: boolean };
+
+/** Both "Teach me" (learned) and "I know it" (known) count toward the daily goal. */
+export function dayProgress(day: DayRecord | undefined, goal: number): DayProgress {
+  const words = day?.words ?? [];
+  const handled = day?.handled ?? {};
+  const learned = words.filter((w) => handled[w] === 'taught').length;
+  const known = words.filter((w) => handled[w] === 'known').length;
+  const done = learned + known;
+  return { goal, total: words.length, done, learned, known, goalMet: words.length > 0 && done >= Math.min(goal, words.length) };
 }

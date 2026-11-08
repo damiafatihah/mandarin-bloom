@@ -17,6 +17,21 @@ describe('buildChallengeWords', () => {
     for (const s of ['了', '书', '进', '汽车']) expect(a).toContain(s);
     expect(buildChallengeWords(POOL, state, TODAY)).toEqual(a);
   });
+
+  it('prefers words learned today, and never quizzes words marked "I know it"', () => {
+    const s = makeState(
+      {
+        known: ['了', '河'],
+        days: { [TODAY]: { words: ['了', '书', '进', '汽车', '爱好'], handled: { 了: 'known', 书: 'taught', 进: 'taught' } } },
+      },
+      { levels: [1, 2] },
+    );
+    const out = buildChallengeWords(POOL, s, TODAY);
+    expect(out).toContain('书');
+    expect(out).toContain('进');
+    expect(out).not.toContain('了');
+    expect(out).not.toContain('河');
+  });
 });
 
 describe('pickPracticeWords', () => {
@@ -27,6 +42,11 @@ describe('pickPracticeWords', () => {
   });
   it('deck → all cards', () => {
     expect(pickPracticeWords(POOL, state, { ...base, source: 'deck' }).sort()).toEqual(['河', '汽车'].sort());
+  });
+  it('levels never includes words marked "I know it"', () => {
+    const s = makeState({ known: ['书', '桌子'] });
+    const out = pickPracticeWords(POOL, s, { ...base, source: 'levels', kind: 'measure-word' });
+    expect(out).toEqual(['汽车']);
   });
   it('levels + forced kind filters to eligible words', () => {
     const out = pickPracticeWords(POOL, state, { ...base, source: 'levels', kind: 'measure-word' });

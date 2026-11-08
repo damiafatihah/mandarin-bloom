@@ -31,9 +31,11 @@ export type Settings = {
   voiceName: string; // '' = automatic (browser default Chinese voice)
 };
 
+export type DailyChoice = 'taught' | 'known';
+
 export type DayRecord = {
-  words: string[];
-  skipped?: number;
+  words: string[]; // today's cards, fixed for the day (grows only via "learn more")
+  handled?: Record<string, DailyChoice>; // which of today's words got "Teach me" / "I know it"
   challengeWords?: string[];
   challenge?: { score: number; total: number };
 };
