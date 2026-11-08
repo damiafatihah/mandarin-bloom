@@ -1,0 +1,64 @@
+@import './tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--sky);
+  color: var(--ink);
+  font-family: var(--font-latin);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { line-height: 1.15; letter-spacing: 0.02em; margin: 0; }
+h1 { font-size: var(--step-3); }
+h2 { font-size: var(--step-1); }
+p { margin: 0; }
+[lang^='zh'] { font-family: var(--font-han); letter-spacing: 0.02em; }
+a { color: var(--lake-deep); }
+button { font: inherit; color: inherit; }
+::selection { background: var(--lake-deep); color: #fff; }
+input, textarea { caret-color: var(--lake-deep); }
+html { scrollbar-color: var(--sky-deep) var(--sky); }
+:focus-visible { outline: 3px solid var(--lake-deep); outline-offset: 3px; border-radius: 10px; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Tone colours (ToneText adds .tone + data-tone) */
+.tone[data-tone='1'] { color: var(--tone-1); }
+.tone[data-tone='2'] { color: var(--tone-2); }
+.tone[data-tone='3'] { color: var(--tone-3); }
+.tone[data-tone='4'] { color: var(--tone-4); }
+.tone[data-tone='5'] { color: var(--tone-5); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
+  min-height: 48px; padding: 0 1.4em; border: 0; border-radius: var(--radius-pill);
+  font-weight: 700; letter-spacing: 0.02em; cursor: pointer; text-decoration: none;
+  transition: transform 0.15s var(--ease), background-color 0.2s var(--ease);
+}
+.btn:active { transform: scale(0.97); }
+.btn--primary { background: var(--lake-deep); color: #fff; }
+.btn--primary:hover { background: var(--lake-ink); }
+.btn--quiet { background: var(--sky); color: var(--ink); }
+.btn--quiet:hover { background: var(--sky-deep); }
+.btn--round {
+  width: 56px; height: 56px; padding: 0; border-radius: 50%;
+  background: var(--paper); color: var(--ink); box-shadow: 0 6px 20px rgb(29 111 134 / 0.18);
+}
+.chip {
+  min-height: 44px; padding: 0 18px; border: 0; border-radius: var(--radius-pill);
+  background: var(--sky); color: var(--ink); font-weight: 700; cursor: pointer;
+  transition: background-color 0.2s var(--ease);
+}
+.chip:hover { background: var(--sky-deep); }
+.chip[aria-pressed='true'] { background: var(--ink); color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
