@@ -59,7 +59,7 @@ import { STORAGE_KEY } from '../state/storage';
 import { makeState } from '../test/fixtures';
 import { dateKey } from '../lib/dates';
 
-it('lowering words-per-day mid-day: ring shows the new goal as reached, extras as optional', () => {
+it('lowering words-per-day mid-day removes only words not started: 5 dealt, 3 done → 3', () => {
   const today = dateKey();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(makeState(
     { days: { [today]: { words: ['书', '河', '金', '近', '进'], handled: { 书: 'taught', 河: 'taught', 金: 'known' } } } },
@@ -68,19 +68,33 @@ it('lowering words-per-day mid-day: ring shows the new goal as reached, extras a
   renderMe();
   const goal = () => screen.getByRole('region', { name: /Today’s goal/ });
   expect(goal()).toHaveTextContent('3 / 5 words done today');
-
   fireEvent.click(screen.getByRole('button', { name: 'Fewer words' }));
   fireEvent.click(screen.getByRole('button', { name: 'Fewer words' }));
   expect(goal()).toHaveTextContent('3 / 3 words done today');
   expect(goal()).toHaveTextContent('Goal reached');
-  expect(goal()).toHaveTextContent('2 optional words left on Today');
   expect(screen.getByRole('img', { name: 'Today’s goal reached' })).toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).days[today].words).toEqual(['书', '河', '金']);
+});
+
+it('15 → 5 on Me leaves 5 words for today, keeping the one already done', () => {
+  const today = dateKey();
+  const words = ['了', '书', '进', '汽车', '爱好', '桌子', '安静', '金', '近', '河', '机会', '绿色', '经济', '环境', '犹豫'];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(makeState(
+    { days: { [today]: { words, handled: { 环境: 'taught' } } } },
+    { wordsPerDay: 15, levels: [1, 2, 3, 4, 5, 7] },
+  )));
+  renderMe();
+  fireEvent.click(screen.getByRole('button', { name: '5' }));
+  const goal = screen.getByRole('region', { name: /Today’s goal/ });
+  expect(goal).toHaveTextContent('1 / 5 words done today');
+  const kept = JSON.parse(localStorage.getItem(STORAGE_KEY)!).days[today].words;
+  expect(kept).toEqual(['了', '书', '进', '汽车', '环境']);
 });
 
 it('the words-per-day note says what really happens', () => {
   renderMe();
   expect(screen.getByText(/Changes today’s goal straight away/)).toHaveTextContent(
-    'Changes today’s goal straight away. Raising it adds words now; lowering it never removes words you already have.',
+    'Changes today’s goal straight away. Raising it adds words now; lowering it removes words you haven’t started, never ones you’ve done.',
   );
 });
 

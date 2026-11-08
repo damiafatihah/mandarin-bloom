@@ -16,7 +16,7 @@ import styles from './Me.module.css';
 
 export default function Me() {
   const { state, dispatch } = useStore();
-  const { today } = useDailyDeal();
+  const { today, pool } = useDailyDeal();
   const cards = Object.values(state.cards);
   const set = (patch: Partial<Settings>) => dispatch({ type: 'UPDATE_SETTINGS', patch });
   const [open, setOpen] = useState<string | null>(null);
@@ -98,13 +98,15 @@ export default function Me() {
 
       <section className={styles.section} aria-labelledby="daily-h">
         <h2 id="daily-h"><span className="zh-title" lang="zh">每日新词</span> <span className="en-sub">Daily words</span></h2>
-        <WordsPerDayPicker value={state.settings.wordsPerDay} onChange={(n) => set({ wordsPerDay: n })} />
-        <p className={styles.note}>Changes today’s goal straight away. Raising it adds words now; lowering it never removes words you already have.</p>
+        <WordsPerDayPicker value={state.settings.wordsPerDay} onChange={(n) => dispatch({ type: 'SET_WORDS_PER_DAY', n, today })} />
+        <p className={styles.note}>Changes today’s goal straight away. Raising it adds words now; lowering it removes words you haven’t started, never ones you’ve done.</p>
       </section>
 
       <section className={styles.section} aria-labelledby="levels-h">
         <h2 id="levels-h"><span className="zh-title" lang="zh">级别</span> <span className="en-sub">Levels</span></h2>
-        <LevelPicker value={state.settings.levels} onChange={(levels) => set({ levels })} />
+        <LevelPicker value={state.settings.levels} onChange={(levels) =>
+          pool ? dispatch({ type: 'SET_LEVELS', levels, today, pool }) : set({ levels })} />
+        <p className={styles.note}>Today’s untouched words from levels you turn off are swapped for words from your new levels.</p>
       </section>
 
       <section className={styles.section} aria-labelledby="display-h">

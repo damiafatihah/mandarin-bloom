@@ -7,6 +7,8 @@ import { initialState } from './defaults';
 export type Action =
   | { type: 'COMPLETE_ONBOARDING'; settings: Partial<Settings> }
   | { type: 'UPDATE_SETTINGS'; patch: Partial<Settings> }
+  | { type: 'SET_WORDS_PER_DAY'; n: number; today: string }
+  | { type: 'SET_LEVELS'; levels: number[]; today: string; pool: HskWord[] }
   | { type: 'ENSURE_DAY'; today: string; pool: HskWord[] }
   | { type: 'TEACH'; word: string; today: string }
   | { type: 'MARK_KNOWN'; word: string; today: string }
@@ -49,6 +51,35 @@ export function reducer(s: AppState, a: Action): AppState {
       return { ...s, onboarded: true, settings: { ...s.settings, ...a.settings } };
     case 'UPDATE_SETTINGS':
       return { ...s, settings: { ...s.settings, ...a.patch } };
+    case 'SET_WORDS_PER_DAY': {
+      const next = { ...s, settings: { ...s.settings, wordsPerDay: a.n } };
+      const day = s.days[a.today];
+      if (!day || day.words.length <= a.n) return next; // raising: the next ENSURE_DAY deals the extra words
+      // Lowering: drop words not started yet (no review card was made for them); keep every word already done.
+      const handled = day.handled ?? {};
+      const done = day.words.filter((w) => handled[w]).length;
+      let room = Math.max(0, a.n - done);
+      const words = day.words.filter((w) => {
+        if (handled[w]) return true;
+        if (room > 0) {
+          room--;
+          return true;
+        }
+        return false;
+      });
+      return withDay(next, a.today, { words });
+    }
+    case 'SET_LEVELS': {
+      const next = { ...s, settings: { ...s.settings, levels: a.levels } };
+      const day = s.days[a.today];
+      if (!day) return next;
+      // Untouched words from levels you turned off make way for words from your new levels; done words stay.
+      const levelOf = new Map(a.pool.map((w) => [w.s, w.l]));
+      const on = new Set(a.levels);
+      const handled = day.handled ?? {};
+      const words = day.words.filter((w) => handled[w] || on.has(levelOf.get(w) ?? -1));
+      return reducer(withDay(next, a.today, { words }), { type: 'ENSURE_DAY', today: a.today, pool: a.pool });
+    }
     case 'ENSURE_DAY': {
       const exists = !!s.days[a.today];
       const current = s.days[a.today]?.words ?? [];

@@ -149,3 +149,93 @@ describe('challenge progress is saved and resumable', () => {
     expect(s.days[TODAY].challengeRun).toEqual({ index: 0, answers: [0] });
   });
 });
+
+describe('SET_WORDS_PER_DAY: lowering trims words you have not started', () => {
+  const ALL = [1, 2, 3, 4, 5, 7];
+  const dealt = (n: number) => {
+    let s = reducer(makeState({}, { levels: ALL, wordsPerDay: n }), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
+    return s;
+  };
+
+  it('15 → 5 with 1 done: today has 5 cards, the done one kept, order kept', () => {
+    let s = dealt(15);
+    const words = s.days[TODAY].words;
+    expect(words).toHaveLength(15);
+    s = reducer(s, { type: 'TEACH', word: words[7], today: TODAY });
+    s = reducer(s, { type: 'SET_WORDS_PER_DAY', n: 5, today: TODAY });
+    expect(s.settings.wordsPerDay).toBe(5);
+    const after = s.days[TODAY].words;
+    expect(after).toHaveLength(5);
+    expect(after).toContain(words[7]);
+    expect(after).toEqual(words.filter((w) => after.includes(w))); // original order
+    expect(s.cards[words[7]]).toBeDefined(); // its review card is untouched
+  });
+
+  it('never removes words already done, even below the new goal', () => {
+    let s = dealt(5);
+    const words = s.days[TODAY].words;
+    for (const w of words.slice(0, 4)) s = reducer(s, { type: 'MARK_KNOWN', word: w, today: TODAY });
+    s = reducer(s, { type: 'SET_WORDS_PER_DAY', n: 2, today: TODAY });
+    expect(s.days[TODAY].words).toEqual(words.slice(0, 4));
+    expect(s.days[TODAY].handled).toEqual(Object.fromEntries(words.slice(0, 4).map((w) => [w, 'known'])));
+  });
+
+  it('5 dealt, 3 done → 3: only the 3 done words remain', () => {
+    let s = dealt(5);
+    const words = s.days[TODAY].words;
+    for (const w of words.slice(0, 3)) s = reducer(s, { type: 'TEACH', word: w, today: TODAY });
+    s = reducer(s, { type: 'SET_WORDS_PER_DAY', n: 3, today: TODAY });
+    expect(s.days[TODAY].words).toEqual(words.slice(0, 3));
+  });
+
+  it('raising only changes the setting; the next ENSURE_DAY deals the extra words', () => {
+    let s = dealt(5);
+    s = reducer(s, { type: 'SET_WORDS_PER_DAY', n: 10, today: TODAY });
+    expect(s.days[TODAY].words).toHaveLength(5);
+    s = reducer(s, { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
+    expect(s.days[TODAY].words).toHaveLength(10);
+  });
+
+  it('up then straight back down returns to the original set', () => {
+    let s = dealt(5);
+    const original = s.days[TODAY].words;
+    s = reducer(s, { type: 'SET_WORDS_PER_DAY', n: 15, today: TODAY });
+    s = reducer(s, { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
+    s = reducer(s, { type: 'SET_WORDS_PER_DAY', n: 5, today: TODAY });
+    expect(s.days[TODAY].words).toEqual(original);
+  });
+
+  it('no words dealt yet today: just the setting changes', () => {
+    const s = reducer(makeState(), { type: 'SET_WORDS_PER_DAY', n: 7, today: TODAY });
+    expect(s.settings.wordsPerDay).toBe(7);
+    expect(s.days[TODAY]).toBeUndefined();
+  });
+});
+
+describe('SET_LEVELS: untouched words from levels you turned off are swapped for new-level words', () => {
+  it('done words stay; untouched off-level words are replaced to keep the daily count', () => {
+    let s = reducer(makeState({}, { levels: [1], wordsPerDay: 3 }), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
+    const [a, b, c] = s.days[TODAY].words;
+    s = reducer(s, { type: 'TEACH', word: a, today: TODAY });
+    s = reducer(s, { type: 'SET_LEVELS', levels: [2], today: TODAY, pool: POOL });
+    expect(s.settings.levels).toEqual([2]);
+    const words = s.days[TODAY].words;
+    expect(words).toHaveLength(3);
+    expect(words[0]).toBe(a); // done word kept, in place
+    expect(words).not.toContain(b);
+    expect(words).not.toContain(c);
+    const level = new Map(POOL.map((w) => [w.s, w.l]));
+    for (const w of words.slice(1)) expect(level.get(w)).toBe(2);
+  });
+  it('adding a level keeps today’s words (they are still in your levels)', () => {
+    let s = reducer(makeState({}, { levels: [1], wordsPerDay: 3 }), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
+    const before = s.days[TODAY].words;
+    s = reducer(s, { type: 'SET_LEVELS', levels: [1, 2], today: TODAY, pool: POOL });
+    expect(s.days[TODAY].words).toEqual(before);
+  });
+  it('no words dealt yet: only the setting changes', () => {
+    const s = reducer(makeState(), { type: 'SET_LEVELS', levels: [4], today: TODAY, pool: POOL });
+    expect(s.settings.levels).toEqual([4]);
+    expect(s.days[TODAY]).toBeUndefined();
+  });
+});

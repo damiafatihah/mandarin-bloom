@@ -244,25 +244,55 @@ test('routing: unknown paths go home, deep links work after onboarding', async (
   expect(errors).toEqual([]);
 });
 
-test('lowering words-per-day mid-day: goal reached now, extra cards optional, nothing removed', async ({ page }) => {
+test('lowering words-per-day mid-day keeps done words and drops untouched ones (5 → 3 after 3 done)', async ({ page }) => {
   await onboard(page, '5');
   const cards = page.getByRole('article');
+  const names = await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
   for (const i of [0, 1, 2]) await cards.nth(i).getByRole('button', { name: i === 2 ? 'I know it' : 'Teach me' }).click();
 
   await page.getByRole('link', { name: /Me/ }).first().click();
   const goal = page.getByRole('region', { name: /Today’s goal/ });
-  await expect(goal).toContainText('3 / 5 words done today');
   await page.getByRole('button', { name: 'Fewer words' }).click();
   await page.getByRole('button', { name: 'Fewer words' }).click();
   await expect(goal).toContainText('3 / 3 words done today');
-  await expect(goal).toContainText('2 optional words left on Today');
+  await expect(goal).toContainText('Goal reached');
 
   await page.getByRole('link', { name: /Today/ }).first().click();
-  await expect(cards).toHaveCount(5);
-  await expect(page.getByText(/words done today/)).toHaveText('3 of 5 words done today');
-  await expect(page.getByText(/Daily goal of 3 done/)).toBeVisible();
-  for (const i of [3, 4]) await cards.nth(i).getByRole('button', { name: 'Teach me' }).click();
+  await expect(cards).toHaveCount(3);
+  expect(await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(names.slice(0, 3));
+  await expect(page.getByRole('region', { name: /Daily goal done/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Learn 3 more' })).toBeVisible();
+});
+
+test('5 → 15 → 5 on Me: Today shows 5 again, the same cards, done one kept', async ({ page }) => {
+  await onboard(page, '5');
+  const cards = page.getByRole('article');
+  const original = await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
+  await cards.nth(1).getByRole('button', { name: 'Teach me' }).click();
+
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  await page.getByRole('button', { name: '15', exact: true }).click();
+  await expect(page.getByRole('region', { name: /Today’s goal/ })).toContainText('1 / 15 words done today');
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await expect(cards).toHaveCount(15);
+
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  await page.getByRole('button', { name: '5', exact: true }).click();
+  await expect(page.getByRole('region', { name: /Today’s goal/ })).toContainText('1 / 5 words done today');
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await expect(cards).toHaveCount(5);
+  expect(await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))).toEqual(original);
+  await expect(cards.nth(1).getByText('Learned')).toBeVisible();
+  await expect(page.getByText(/words done today/)).toHaveText('1 of 5 words done today');
+
+  // stepping down one at a time with the − button behaves the same
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'More words' }).click();
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Fewer words' }).click();
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await expect(cards).toHaveCount(5);
+  await page.reload();
+  await expect(cards).toHaveCount(5);
 });
 
 test('raising words-per-day on Me updates the goal ring immediately', async ({ page }) => {
@@ -277,4 +307,20 @@ test('raising words-per-day on Me updates the goal ring immediately', async ({ p
   await page.getByRole('link', { name: /Today/ }).first().click();
   await expect(page.getByRole('article')).toHaveCount(10);
   await expect(page.getByText(/words done today/)).toHaveText('1 of 10 words done today');
+});
+
+test('changing levels on Me swaps today’s untouched words for new-level words; done words stay', async ({ page }) => {
+  await onboard(page, '5'); // default HSK 4–5
+  const cards = page.getByRole('article');
+  const doneWord = await cards.nth(0).getAttribute('aria-label');
+  await cards.nth(0).getByRole('button', { name: 'Teach me' }).click();
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  await page.getByRole('button', { name: /HSK 6/ }).click(); // add 6
+  await page.getByRole('button', { name: /HSK 4 / }).click(); // remove 4
+  await page.getByRole('button', { name: /HSK 5/ }).click(); // remove 5
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await expect(cards).toHaveCount(5);
+  await expect(cards.nth(0)).toHaveAttribute('aria-label', doneWord!);
+  for (const i of [1, 2, 3, 4]) await expect(cards.nth(i).getByText(/HSK 6/)).toBeVisible();
+  await expect(page.getByText(/words done today/)).toHaveText('1 of 5 words done today');
 });
