@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useStore } from '../state/store';
 import { useHsk } from '../data/resources';
 import { dateKey } from '../lib/dates';
 import { seededRng } from '../lib/rng';
-import { buildQuestions, type Question, type QuestionKind } from '../lib/quiz';
+import { buildQuestions, type QuestionKind } from '../lib/quiz';
 import { pickPracticeWords, type PracticeSource } from '../lib/challenge';
 import { speechSupported } from '../lib/speech';
-import { QuizRunner, type QuizResult } from '../components/QuizRunner';
+import { QuizRunner, tally } from '../components/QuizRunner';
 import { QuizResultView } from '../components/QuizResultView';
 import { Loading, LoadError } from '../components/Status';
 import { PageHeader } from '../components/PageHeader';
@@ -32,42 +32,60 @@ export default function Practice() {
   const { state, dispatch } = useStore();
   const { data: pool, error } = useHsk();
   const [params] = useSearchParams();
-  const [source, setSource] = useState<PracticeSource>(params.get('source') === 'due' ? 'due' : 'levels');
-  const [kind, setKind] = useState<QuestionKind | 'mixed'>('mixed');
-  const [size, setSize] = useState(10);
-  const [run, setRun] = useState<{ seed: string; questions: Question[] } | null>(null);
-  const [result, setResult] = useState<QuizResult | null>(null);
+  const saved = state.practice;
+  const [source, setSource] = useState<PracticeSource>(params.get('source') === 'due' ? 'due' : (saved?.source ?? 'levels'));
+  const [kind, setKind] = useState<QuestionKind | 'mixed'>((saved?.kind as QuestionKind | undefined) ?? 'mixed');
+  const [size, setSize] = useState(saved?.size ?? 10);
   const [empty, setEmpty] = useState(false);
   const today = dateKey();
   const speech = speechSupported();
 
+  // The saved session's questions are rebuilt from its words and seed, so a resume shows the same quiz.
+  const questions = useMemo(
+    () => (pool && saved ? buildQuestions(saved.words, pool, saved.seed, { speech, kind: saved.kind as QuestionKind | undefined }) : []),
+    [pool, saved?.seed, saved?.words, saved?.kind, speech], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   if (error) return <LoadError error={error} />;
   if (!pool) return <Loading label="Loading words…" />;
 
-  function start() {
+  function start(opts = { source, size, kind }) {
     const seed = `practice:${Date.now()}`;
-    const forced = kind === 'mixed' ? undefined : kind;
-    const words = pickPracticeWords(pool!, state, { source, size, today, speech, kind: forced, rng: seededRng(seed) });
-    setResult(null);
-    if (!words.length) { setEmpty(true); setRun(null); return; }
+    const forced = opts.kind === 'mixed' ? undefined : opts.kind;
+    const words = pickPracticeWords(pool!, state, { source: opts.source, size: opts.size, today, speech, kind: forced, rng: seededRng(seed) });
+    if (!words.length) {
+      setEmpty(true);
+      dispatch({ type: 'END_PRACTICE' });
+      return;
+    }
     setEmpty(false);
-    setRun({ seed, questions: buildQuestions(words, pool!, seed, { speech, kind: forced }) });
+    dispatch({ type: 'START_PRACTICE', seed, words, source: opts.source, size: opts.size, kind: forced });
   }
 
-  if (result) {
+  if (saved?.finished) {
+    const r = tally(questions, saved.answers);
+    const again = { source: saved.source, size: saved.size, kind: (saved.kind as QuestionKind | undefined) ?? 'mixed' as const };
     return (
-      <QuizResultView heading="练习 done" score={result.score} total={result.total} missed={result.missed} sealText="练">
-        <button type="button" className="btn btn--primary" onClick={start}>Go again</button>
-        <button type="button" className="btn btn--quiet" onClick={() => { setResult(null); setRun(null); }}>Change settings</button>
+      <QuizResultView heading="练习 done" score={r.score} total={r.total} missed={r.missed} sealText="练">
+        <button type="button" className="btn btn--primary" onClick={() => start(again)}>Go again</button>
+        <button type="button" className="btn btn--quiet" onClick={() => dispatch({ type: 'END_PRACTICE' })}>Change settings</button>
       </QuizResultView>
     );
   }
 
-  if (run) {
+  if (saved) {
     return (
-      <QuizRunner key={run.seed} questions={run.questions} speechRate={state.settings.speechRate}
-        onAnswer={(q, correct) => dispatch({ type: 'GRADE', word: q.word, correct, today })}
-        onFinish={setResult} />
+      <div className={styles.running}>
+        <div className={styles.runBar}>
+          <p className={styles.runLabel}><span lang="zh" className="zh-title">练习</span> Practice · saved as you go</p>
+          <button type="button" className="btn btn--quiet" onClick={() => dispatch({ type: 'END_PRACTICE' })}>End practice</button>
+        </div>
+        <QuizRunner key={saved.seed} questions={questions} speechRate={state.settings.speechRate}
+          startIndex={saved.index} startAnswers={saved.answers}
+          onAnswer={(q, correct, index, choice) => dispatch({ type: 'ANSWER_PRACTICE', index, choice, word: q.word, correct, today })}
+          onAdvance={(index) => dispatch({ type: 'ADVANCE_PRACTICE', index })}
+          onFinish={() => dispatch({ type: 'FINISH_PRACTICE' })} />
+      </div>
     );
   }
 
@@ -104,7 +122,7 @@ export default function Practice() {
           {source === 'due' ? 'Nothing is due right now. 好样的！ Try “My levels”.' : 'No words match. Try another source or question type.'}
         </p>
       )}
-      <button type="button" className="btn btn--primary" onClick={start}>Start<ArrowRight /></button>
+      <button type="button" className="btn btn--primary" onClick={() => start()}>Start<ArrowRight /></button>
       </div>
     </div>
   );

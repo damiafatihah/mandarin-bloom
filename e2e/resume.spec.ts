@@ -44,3 +44,32 @@ test('challenge resumes after switching tabs and after a reload', async ({ page 
   await expect(page.getByRole('heading', { name: /每日挑战 complete/ })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('practice resumes after switching tabs and after a reload; End practice starts fresh', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.getByRole('button', { name: 'Next' }).click();
+  await page.getByRole('button', { name: 'Start learning' }).click();
+  await page.getByRole('link', { name: /Practice/ }).first().click();
+  await page.getByRole('button', { name: 'Tones' }).click();
+  await page.getByRole('button', { name: /^Start/ }).click();
+  const q = () => page.getByRole('region', { name: /^Question \d+ of 10$/ });
+  for (let i = 0; i < 2; i++) {
+    await page.locator('[data-choice]').first().click();
+    await page.getByRole('button', { name: 'Next question' }).click();
+  }
+  await expect(q()).toHaveAccessibleName('Question 3 of 10');
+  const prompt = await q().locator('h2').innerText();
+
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await page.getByRole('link', { name: /Practice/ }).first().click();
+  await expect(q()).toHaveAccessibleName('Question 3 of 10');
+  await expect(q().locator('h2')).toHaveText(prompt);
+  await expect(page.getByText('Which tones are right?')).toBeVisible();
+
+  await page.reload();
+  await expect(q()).toHaveAccessibleName('Question 3 of 10');
+
+  await page.getByRole('button', { name: 'End practice' }).click();
+  await expect(page.getByRole('button', { name: /^Start/ })).toBeVisible();
+});

@@ -239,3 +239,37 @@ describe('SET_LEVELS: untouched words from levels you turned off are swapped for
     expect(s.days[TODAY]).toBeUndefined();
   });
 });
+
+describe('practice sessions are saved and resumable', () => {
+  const begin = () => reducer(makeState(), { type: 'START_PRACTICE', seed: 'p1', words: ['书', '河', '金'], source: 'levels', size: 10 });
+
+  it('START_PRACTICE saves the session at question 1', () => {
+    expect(begin().practice).toEqual({ seed: 'p1', words: ['书', '河', '金'], source: 'levels', size: 10, index: 0, answers: [] });
+  });
+  it('ANSWER_PRACTICE records and grades exactly once', () => {
+    let s = begin();
+    s = reducer(s, { type: 'ANSWER_PRACTICE', index: 0, choice: 2, word: '书', correct: false, today: TODAY });
+    expect(s.practice!.answers).toEqual([2]);
+    expect(s.cards['书']).toMatchObject({ seen: 1 });
+    expect(reducer(s, { type: 'ANSWER_PRACTICE', index: 0, choice: 1, word: '书', correct: true, today: TODAY })).toBe(s);
+  });
+  it('ADVANCE_PRACTICE, FINISH_PRACTICE and END_PRACTICE', () => {
+    let s = begin();
+    s = reducer(s, { type: 'ADVANCE_PRACTICE', index: 1 });
+    expect(s.practice!.index).toBe(1);
+    s = reducer(s, { type: 'FINISH_PRACTICE' });
+    expect(s.practice!.finished).toBe(true);
+    s = reducer(s, { type: 'END_PRACTICE' });
+    expect(s.practice).toBeUndefined();
+  });
+  it('a new START_PRACTICE replaces the old session', () => {
+    let s = begin();
+    s = reducer(s, { type: 'ANSWER_PRACTICE', index: 0, choice: 2, word: '书', correct: false, today: TODAY });
+    s = reducer(s, { type: 'START_PRACTICE', seed: 'p2', words: ['近'], source: 'due', size: 10, kind: 'hanzi-to-pinyin' });
+    expect(s.practice).toEqual({ seed: 'p2', words: ['近'], source: 'due', size: 10, kind: 'hanzi-to-pinyin', index: 0, answers: [] });
+  });
+  it('answers without a session are ignored', () => {
+    const s = makeState();
+    expect(reducer(s, { type: 'ANSWER_PRACTICE', index: 0, choice: 0, word: '书', correct: false, today: TODAY })).toBe(s);
+  });
+});

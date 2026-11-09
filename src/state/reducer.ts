@@ -1,4 +1,4 @@
-import type { AppState, DailyChoice, DayRecord, HskWord, Settings } from '../lib/types';
+import type { AppState, DailyChoice, DayRecord, HskWord, PracticeRun, Settings } from '../lib/types';
 import { addDays } from '../lib/dates';
 import { gradeCard, newCard } from '../lib/srs';
 import { selectNewWords } from '../lib/daily';
@@ -20,7 +20,20 @@ export type Action =
   | { type: 'ADVANCE_CHALLENGE'; today: string; index: number }
   | { type: 'GRADE'; word: string; correct: boolean; today: string }
   | { type: 'FINISH_CHALLENGE'; today: string; score: number; total: number }
+  | { type: 'START_PRACTICE'; seed: string; words: string[]; source: PracticeRun['source']; size: number; kind?: string }
+  | { type: 'ANSWER_PRACTICE'; index: number; choice: number; word: string; correct: boolean; today: string }
+  | { type: 'ADVANCE_PRACTICE'; index: number }
+  | { type: 'FINISH_PRACTICE' }
+  | { type: 'END_PRACTICE' }
   | { type: 'RESET' };
+
+/** Saved answers with `choice` at `index`, or null if that question was already answered (score once). */
+function withAnswer(answers: (number | null)[], index: number, choice: number): (number | null)[] | null {
+  if (answers[index] != null) return null;
+  const next = Array.from({ length: Math.max(answers.length, index + 1) }, (_, i) => answers[i] ?? null);
+  next[index] = choice;
+  return next;
+}
 
 function withDay(s: AppState, today: string, patch: Partial<DayRecord>): AppState {
   const day = s.days[today] ?? { words: [] };
@@ -126,9 +139,8 @@ export function reducer(s: AppState, a: Action): AppState {
       return withDay(s, a.today, { challengeWords: a.words, challengeRun: { index: 0, answers: [] } });
     case 'ANSWER_CHALLENGE': {
       const run = s.days[a.today]?.challengeRun ?? { index: a.index, answers: [] };
-      if (run.answers[a.index] != null) return s; // each question is scored exactly once
-      const answers = Array.from({ length: Math.max(run.answers.length, a.index + 1) }, (_, i) => run.answers[i] ?? null);
-      answers[a.index] = a.choice;
+      const answers = withAnswer(run.answers, a.index, a.choice);
+      if (!answers) return s; // each question is scored exactly once
       const next = withDay(s, a.today, { challengeRun: { ...run, answers } });
       return reducer(next, { type: 'GRADE', word: a.word, correct: a.correct, today: a.today });
     }
@@ -147,6 +159,26 @@ export function reducer(s: AppState, a: Action): AppState {
     }
     case 'FINISH_CHALLENGE':
       return withDay(s, a.today, { challenge: { score: a.score, total: a.total } });
+    case 'START_PRACTICE': {
+      const { seed, words, source, size, kind } = a;
+      return { ...s, practice: { seed, words, source, size, ...(kind ? { kind } : {}), index: 0, answers: [] } };
+    }
+    case 'ANSWER_PRACTICE': {
+      if (!s.practice) return s;
+      const answers = withAnswer(s.practice.answers, a.index, a.choice);
+      if (!answers) return s;
+      return reducer({ ...s, practice: { ...s.practice, answers } }, { type: 'GRADE', word: a.word, correct: a.correct, today: a.today });
+    }
+    case 'ADVANCE_PRACTICE':
+      return s.practice ? { ...s, practice: { ...s.practice, index: a.index } } : s;
+    case 'FINISH_PRACTICE':
+      return s.practice ? { ...s, practice: { ...s.practice, finished: true } } : s;
+    case 'END_PRACTICE': {
+      if (!s.practice) return s;
+      const next = { ...s };
+      delete next.practice;
+      return next;
+    }
     case 'RESET':
       return { ...initialState, settings: s.settings, onboarded: s.onboarded };
   }

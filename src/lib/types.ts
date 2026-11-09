@@ -42,6 +42,18 @@ export type DayRecord = {
   challenge?: { score: number; total: number };
 };
 
+/** A practice session in progress (or finished, until the next one starts). */
+export type PracticeRun = {
+  seed: string;
+  words: string[];
+  source: 'due' | 'levels' | 'deck';
+  size: number;
+  kind?: string; // a QuestionKind; absent = mixed
+  index: number;
+  answers: (number | null)[];
+  finished?: boolean;
+};
+
 export type AppState = {
   version: 1;
   onboarded: boolean;
@@ -49,4 +61,5 @@ export type AppState = {
   known: string[];
   cards: Record<string, Card>;
   days: Record<string, DayRecord>;
+  practice?: PracticeRun;
 };

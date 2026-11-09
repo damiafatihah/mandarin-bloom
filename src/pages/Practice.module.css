@@ -9,3 +9,8 @@
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .empty { color: var(--ink-2); }
 .card > :global(.btn--primary) { min-width: 180px; }
+
+.running { display: grid; gap: 16px; max-width: 680px; margin-inline: auto; }
+.runBar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.runLabel { color: var(--ink-2); font-weight: 600; }
+.runLabel span { color: var(--ink); margin-right: 6px; }
