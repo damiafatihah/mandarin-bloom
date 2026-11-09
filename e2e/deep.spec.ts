@@ -85,16 +85,53 @@ test('daily goal: both choices count, cards stay put, goal panel, optional learn
   expect(errors).toEqual([]);
 });
 
-test('phone: after a choice the carousel glides to the next undecided card', async ({ page }, info) => {
+test('phone: after a choice the card stays in view with its details; "Next word" moves on', async ({ page }, info) => {
   test.skip(info.project.name !== 'phone');
   await onboard(page, '5');
   const list = page.locator('[data-carousel]');
   const scrollX = () => list.evaluate((el) => el.scrollLeft);
+  const cards = page.getByRole('article');
+  // opened cards are taller than the screen, so check the card is the one showing left-to-right
+  const inView = async (i: number) => {
+    const box = (await cards.nth(i).boundingBox())!;
+    const width = page.viewportSize()!.width;
+    return box.x >= 0 && box.x + box.width <= width;
+  };
   expect(await scrollX()).toBe(0);
+
+  await cards.first().getByRole('button', { name: 'Teach me' }).click();
+  await page.waitForTimeout(600); // give any (unwanted) scrolling time to happen
+  expect(await scrollX()).toBe(0);
+  await expect.poll(() => inView(0)).toBe(true);
+  await expect(cards.first().getByText('Learnt')).toBeVisible();
+  await expect(cards.first().locator('ul li').first()).toBeVisible(); // the meaning
+
+  await cards.first().getByRole('button', { name: 'Next word' }).click();
+  await expect.poll(() => inView(1)).toBe(true);
+
+  // "I know it" also stays put; Next word skips cards already done
+  await cards.nth(1).getByRole('button', { name: 'I know it' }).click();
+  await page.waitForTimeout(600);
+  await expect.poll(() => inView(1)).toBe(true);
+  await expect(cards.nth(1).getByText('Already knew')).toBeVisible();
+  await cards.nth(1).getByRole('button', { name: 'Next word' }).click();
+  await expect.poll(() => inView(2)).toBe(true);
+
+  // finish the rest: the last undecided card has no Next word button
+  for (const i of [2, 3]) {
+    await cards.nth(i).getByRole('button', { name: 'Teach me' }).click();
+    await cards.nth(i).getByRole('button', { name: 'Next word' }).click();
+  }
+  await cards.nth(4).getByRole('button', { name: 'Teach me' }).click();
+  await expect(cards.nth(4).getByRole('button', { name: 'Next word' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: /Daily goal done/ })).toBeAttached();
+});
+
+test('laptop: cards are all visible, so there is no Next word button', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop');
+  await onboard(page, '5');
   await page.getByRole('article').first().getByRole('button', { name: 'Teach me' }).click();
-  await expect.poll(scrollX).toBeGreaterThan(100);
-  const second = page.getByRole('article').nth(1);
-  await expect(second).toBeInViewport({ ratio: 0.9 });
+  await expect(page.getByRole('button', { name: 'Next word' })).toBeHidden();
 });
 
 test('me: info buttons explain each number', async ({ page }, info) => {

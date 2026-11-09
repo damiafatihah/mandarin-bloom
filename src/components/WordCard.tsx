@@ -21,10 +21,17 @@ type Props = {
   speechRate: number;
   /** an example sentence [chinese, english], shown once the word is learnt */
   example?: [string, string];
+  /** phone carousel: go to the next word still waiting for a choice (absent when none is left) */
+  onNext?: () => void;
 };
 
-export function WordCard({ word, status, onTeach, onKnown, onUndo, toneColors, speechRate, example }: Props) {
+export function WordCard({ word, status, onTeach, onKnown, onUndo, toneColors, speechRate, example, onNext }: Props) {
   const revealed = status !== 'new';
+  const next = onNext && (
+    <button type="button" className={`btn btn--primary ${styles.next}`} data-next-word onClick={onNext} aria-label="Next word">
+      Next<ArrowRight />
+    </button>
+  );
   return (
     <article className={styles.card} data-status={status} aria-label={word.s}>
       <Landscape variant="card" seed={word.s} className={styles.hills} />
@@ -57,17 +64,24 @@ export function WordCard({ word, status, onTeach, onKnown, onUndo, toneColors, s
             <p className={styles.mw}>Measure word <span lang="zh" className={styles.mwHan}>{word.c.join('、')}</span></p>
           )}
           {example && <Example zh={example[0]} en={example[1]} word={word.s} rate={speechRate} compact />}
-          <Link className={styles.more} to={`/word/${encodeURIComponent(word.s)}`}>More about {word.s}<ArrowRight /></Link>
+          <div className={styles.footer}>
+            <Link className={styles.more} to={`/word/${encodeURIComponent(word.s)}`}>More about {word.s}<ArrowRight /></Link>
+            {next}
+          </div>
         </div>
       )}
       {status === 'known' && (
         <div className={styles.back}>
           <p className={styles.knownMeaning}>{word.m[0]}</p>
-          <button type="button" className={styles.undo} onClick={onUndo} aria-label={`Undo: I don’t know ${word.s}`}>
-            Undo
-          </button>
+          <div className={styles.footer}>
+            <button type="button" className={styles.undo} onClick={onUndo} aria-label={`Undo: I don’t know ${word.s}`}>
+              Undo
+            </button>
+            {next}
+          </div>
         </div>
       )}
+
     </article>
   );
 }

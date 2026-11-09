@@ -134,3 +134,21 @@ it('past the goal but not finished: the hint says how many extra and that the re
   renderToday();
   expect(screen.getByText(/Daily goal of 3 done/)).toHaveTextContent('Daily goal of 3 done · +1 extra · the rest are optional');
 });
+
+it('a choice does not jump away from the card; "Next word" goes to the next undecided card', () => {
+  const scroll = vi.fn();
+  Element.prototype.scrollIntoView = scroll;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(makeState({}, { wordsPerDay: 3, levels: [1, 2] })));
+  renderToday();
+  const [a, b, c] = cards();
+  fireEvent.click(within(a).getByRole('button', { name: 'Teach me' }));
+  expect(scroll).not.toHaveBeenCalled();
+  fireEvent.click(within(c).getByRole('button', { name: 'I know it' }));
+  fireEvent.click(within(a).getByRole('button', { name: 'Next word' }));
+  expect(scroll).toHaveBeenCalledTimes(1);
+  expect(scroll.mock.contexts[0]).toBe(b); // skips nothing undecided: b is next
+  fireEvent.click(within(c).getByRole('button', { name: 'Next word' }));
+  expect(scroll.mock.contexts[1]).toBe(b); // wraps around to the one still waiting
+  fireEvent.click(within(b).getByRole('button', { name: 'Teach me' }));
+  expect(screen.queryAllByRole('button', { name: 'Next word' })).toHaveLength(0); // nothing left to go to
+});

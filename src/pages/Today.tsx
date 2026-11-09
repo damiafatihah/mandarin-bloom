@@ -42,19 +42,24 @@ export default function Today() {
   const challengeAnswered = day?.challengeRun?.answers.filter((x) => x != null).length ?? 0;
   const streakDays = streak(Object.keys(state.days).filter((k) => state.days[k].challenge), today);
 
-  /** On the phone carousel, glide to the next card still waiting for a choice. */
-  function showNextCard(after: string) {
-    const list = listRef.current;
-    if (!list || list.scrollWidth <= list.clientWidth) return; // grid layout: everything is visible
-    const i = words.findIndex((w) => w.s === after);
-    const next = [...words.slice(i + 1), ...words.slice(0, i)].find((w) => statusOf(w.s) === 'new');
-    const el = next && list.querySelector<HTMLElement>(`[aria-label="${next.s}"]`);
+  /** The next card after `word` still waiting for a choice (wrapping round), if any. */
+  function nextUndecided(word: string): string | undefined {
+    const i = words.findIndex((w) => w.s === word);
+    return [...words.slice(i + 1), ...words.slice(0, i)].find((w) => statusOf(w.s) === 'new')?.s;
+  }
+  /**
+   * Phone carousel: a choice keeps the card in view so its meaning can be read; "Next word" then glides on.
+   * (Laptop shows every card at once and hides the button.)
+   */
+  function goTo(word: string) {
+    const el = listRef.current?.querySelector<HTMLElement>(`[aria-label="${word}"]`);
+    if (!el) return;
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    el?.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest', inline: 'start' });
+    el.scrollIntoView?.({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest', inline: 'start' });
+    el.querySelector<HTMLElement>('button')?.focus({ preventScroll: true });
   }
   function choose(word: string, type: 'TEACH' | 'MARK_KNOWN') {
     dispatch({ type, word, today });
-    showNextCard(word);
   }
 
   return (
@@ -126,6 +131,7 @@ export default function Today() {
           {words.map((w) => (
             <WordCard key={w.s} word={w} status={statusOf(w.s)} toneColors={toneColors} speechRate={speechRate}
               example={examplesFor(examples, w.s)[0]}
+              onNext={nextUndecided(w.s) ? () => goTo(nextUndecided(w.s)!) : undefined}
               onTeach={() => choose(w.s, 'TEACH')}
               onKnown={() => choose(w.s, 'MARK_KNOWN')}
               onUndo={() => dispatch({ type: 'UNDO_DAILY', word: w.s, today })} />

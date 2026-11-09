@@ -100,6 +100,7 @@
   .hero { margin: 0; padding: 28px 28px 32px; min-height: 220px; border-radius: var(--radius-card); background: rgb(255 255 255 / 0.55); }
 }
 @media (min-width: 768px) {
+  .words :global([data-next-word]) { display: none; }
   .words {
     grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr));
     overflow: visible; margin-inline: 0; padding: 4px 0 0;

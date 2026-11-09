@@ -46,3 +46,8 @@
   color: var(--brand); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
 }
 .undo:hover { color: var(--brand-hover); }
+
+/* "More about …" or "Undo" on the left; on the phone carousel, "Next word" on the right */
+.footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; }
+.footer > :first-child { min-width: 0; }
+.next { min-height: 44px; padding-inline: 18px; }
