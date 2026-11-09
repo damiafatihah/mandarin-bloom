@@ -1,0 +1,39 @@
+# Netlify build settings for 学海 Xuéhǎi (site: xuehai-damia)
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Playwright's browsers are only needed for local tests, not for building the site.
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1"
+
+# Single-page app: every path loads index.html (also in public/_redirects).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Hashed build files never change, so browsers can keep them for a year.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Word data changes only when the data is rebuilt; recheck daily.
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# The service worker must always be fresh so app updates reach installed copies.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
