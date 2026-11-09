@@ -16,6 +16,7 @@
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/josefin-sans": "^5.3.0",
+    "@fontsource/league-spartan": "^5.3.0",
     "@fontsource/noto-serif-sc": "^5.3.1",
     "@fontsource/urbanist": "^5.3.0",
     "react": "^19.3.1",

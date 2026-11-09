@@ -37,8 +37,9 @@
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-han: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
   --font-brush: 'Zhi Mang Xing', 'Noto Serif SC', serif;
-  /* Josefin lacks ǎ ǐ ǒ ǔ ǖ–ǜ; pinyin always renders in Urbanist (verified full coverage). */
-  --font-pinyin: 'Urbanist', 'Noto Sans', system-ui, sans-serif;
+  /* Pinyin: League Spartan has its own glyph for all 24 tone vowels and places every mark over its letter.
+     Josefin lacks ǎ ǐ ǒ ǔ ǖ–ǜ; Urbanist misplaces first-tone macrons. Both checked by e2e/fonts.spec.ts. */
+  --font-pinyin: 'League Spartan', 'Noto Sans', system-ui, sans-serif;
 
   /* one scale: 12 · 14 · 16 · 18 · 22 · 28 · display */
   --step--1: 0.875rem;
