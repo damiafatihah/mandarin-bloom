@@ -29,7 +29,7 @@ it('signed out: email me a link, then says to check email', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Email me a link' }));
   await flush();
   expect(backend.sendLink).toHaveBeenCalledWith('me@x.com');
-  expect(screen.getByRole('status')).toHaveTextContent('Check me@x.com for a sign-in link');
+  expect(screen.getByRole('status')).toHaveTextContent('Email sent to me@x.com. Open the link on this device, or type the code from the email here.');
 });
 
 it('opening the link signs in and syncs: this device’s progress goes to the cloud', async () => {
@@ -81,4 +81,37 @@ it('Sign out keeps progress on this device', async () => {
   expect(backend.signOut).toHaveBeenCalled();
   expect(screen.getByRole('button', { name: 'Email me a link' })).toBeInTheDocument();
   expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).known).toEqual(['河']);
+});
+
+it('after asking for a link, the 6-digit code from the email signs this device in', async () => {
+  const { backend, cloud } = memoryBackend();
+  setBackendForTests(backend);
+  mount();
+  await flush();
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'me@x.com' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Email me a link' }));
+  await flush();
+  expect(screen.getByRole('status')).toHaveTextContent('Open the link on this device, or type the code from the email here');
+  fireEvent.change(screen.getByLabelText('Code from the email'), { target: { value: ' 123 456 ' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+  await flush();
+  await flush();
+  expect(backend.verifyCode).toHaveBeenCalledWith('me@x.com', '123456');
+  expect(screen.getByText(/Signed in as/)).toHaveTextContent('Signed in as me@x.com');
+  expect(cloud.has('me@x.com')).toBe(true);
+});
+
+it('a wrong or expired code says so and lets you try again', async () => {
+  const { backend } = memoryBackend();
+  setBackendForTests(backend);
+  mount();
+  await flush();
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'me@x.com' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Email me a link' }));
+  await flush();
+  fireEvent.change(screen.getByLabelText('Code from the email'), { target: { value: '000000' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+  await flush();
+  expect(screen.getByRole('alert')).toHaveTextContent('That code didn’t work. Check it, or send yourself a new email.');
+  expect(screen.getByLabelText('Code from the email')).toBeInTheDocument();
 });

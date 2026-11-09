@@ -15,6 +15,9 @@ type SyncContextValue = {
   error: string | null;
   lastSynced: number | null;
   sendLink: (email: string) => Promise<void>;
+  /** Returns false (with `codeError` set) when the code is wrong or expired. */
+  verifyCode: (code: string) => Promise<boolean>;
+  codeError: string | null;
   cancelLink: () => void;
   signOut: () => Promise<void>;
   syncNow: () => Promise<void>;
@@ -39,6 +42,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [lastSynced, setLastSynced] = useState<number | null>(null);
   const [linkEmail, setLinkEmail] = useState('');
+  const [codeError, setCodeError] = useState<string | null>(null);
 
   const engine = useMemo(
     () => backend && createSyncEngine({
@@ -134,6 +138,18 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         setStatus('error');
       }
     },
+    async verifyCode(code) {
+      if (!backend) return false;
+      setCodeError(null);
+      try {
+        await backend.verifyCode(linkEmail, code);
+        return true;
+      } catch {
+        setCodeError('That code didn’t work. Check it, or send yourself a new email.');
+        return false;
+      }
+    },
+    codeError,
     cancelLink() {
       setLinkEmail('');
       setError(null);
@@ -146,14 +162,14 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       setError(null);
       setStatus('signed-out');
     },
-  }), [status, user, linkEmail, error, lastSynced, syncNow, backend]);
+  }), [status, user, linkEmail, error, lastSynced, syncNow, backend, codeError]);
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;
 }
 
 const OFF: SyncContextValue = {
   status: 'off', user: null, linkEmail: '', error: null, lastSynced: null,
-  sendLink: async () => {}, cancelLink: () => {}, signOut: async () => {}, syncNow: async () => {},
+  sendLink: async () => {}, verifyCode: async () => false, codeError: null, cancelLink: () => {}, signOut: async () => {}, syncNow: async () => {},
 };
 
 /** Sync state for a page; outside a SyncProvider (e.g. a page tested on its own) sync is simply off. */

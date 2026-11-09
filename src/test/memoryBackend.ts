@@ -20,6 +20,11 @@ export function memoryBackend(cloud = new Map<string, AppState>(), signedIn: str
       user = { id: email, email };
       listeners.forEach((cb) => cb(user));
     },
+    /** Accepts 123456 as the right code. */
+    verifyCode: vi.fn(async (email: string, code: string) => {
+      if (code !== '123456') throw new Error('Token has expired or is invalid');
+      backend.openLink(email);
+    }),
     signOut: vi.fn(async () => {
       user = null;
       listeners.forEach((cb) => cb(null));

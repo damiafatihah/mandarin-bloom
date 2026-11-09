@@ -55,6 +55,7 @@ test('two devices: sign in on both and progress follows you', async ({ browser }
   // Phone: brand new, signs in from the welcome screen and lands on Today with the same words
   await phone.goto('/');
   await phone.getByRole('button', { name: 'Sign in to bring your progress' }).click();
+  // the stand-in cloud signs in as soon as the email is "sent", so this checks the link path…
   await phone.getByLabel('Email').fill('me@example.com');
   await phone.getByRole('button', { name: 'Email me a link' }).click();
   await expect(phone).toHaveURL(/\/$/);
@@ -82,4 +83,27 @@ test('two devices: sign in on both and progress follows you', async ({ browser }
 
   await laptopCtx.close();
   await phoneCtx.close();
+});
+
+test('a device can sign in with the code from the email (when the link was opened somewhere else)', async ({ browser }, info) => {
+  test.skip(info.project.name !== 'phone');
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await cloudFor(ctx);
+  const page = await ctx.newPage();
+  // stop the stand-in from auto-signing in, so the code step is used
+  await page.addInitScript(() => { (window as unknown as { __fakeSyncNoAutoLink: boolean }).__fakeSyncNoAutoLink = true; });
+  await onboard(page);
+  await goTab(page, /Me/);
+  const s = page.getByRole('region', { name: /Sync/ });
+  await s.getByLabel('Email').fill('me@example.com');
+  await s.getByRole('button', { name: 'Email me a link' }).click();
+  await expect(s.getByRole('status')).toContainText('type the code from the email here');
+  await s.getByLabel('Code from the email').fill('111111');
+  await s.getByRole('button', { name: 'Sign in' }).click();
+  await expect(s.getByRole('alert')).toContainText('That code didn’t work');
+  await s.getByLabel('Code from the email').fill('123456');
+  await s.getByRole('button', { name: 'Sign in' }).click();
+  await expect(s.getByText('Signed in as me@example.com')).toBeVisible();
+  await expect(s.getByRole('status')).toHaveText(/Synced/);
+  await ctx.close();
 });

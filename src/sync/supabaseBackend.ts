@@ -33,6 +33,10 @@ export function createSupabaseBackend(url: string, anonKey: string): SyncBackend
       const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin + '/' } });
       if (error) throw error;
     },
+    async verifyCode(email, code) {
+      const { error } = await sb.auth.verifyOtp({ email, token: code, type: 'email' });
+      if (error) throw error;
+    },
     async signOut() {
       await sb.auth.signOut();
     },

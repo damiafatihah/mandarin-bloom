@@ -20,8 +20,14 @@ export const fakeBackend: SyncBackend = {
     return () => listeners.delete(cb);
   },
   async sendLink(email) {
+    if ((window as unknown as { __fakeSyncNoAutoLink?: boolean }).__fakeSyncNoAutoLink) return; // tests of the code step
     localStorage.setItem(KEY, email);
     setTimeout(() => listeners.forEach((cb) => cb(userFor(email))), 50);
+  },
+  async verifyCode(email, code) {
+    if (code !== '123456') throw new Error('Token has expired or is invalid');
+    localStorage.setItem(KEY, email);
+    listeners.forEach((cb) => cb(userFor(email)));
   },
   async signOut() {
     localStorage.removeItem(KEY);

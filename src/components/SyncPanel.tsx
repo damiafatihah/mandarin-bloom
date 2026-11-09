@@ -15,6 +15,7 @@ export function SyncPanel({ compact = false }: { compact?: boolean }) {
   const sync = useSync();
   const id = useId();
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 30_000);
@@ -44,13 +45,26 @@ export function SyncPanel({ compact = false }: { compact?: boolean }) {
   }
 
   if (sync.status === 'link-sent') {
+    const submitCode = (e: FormEvent) => {
+      e.preventDefault();
+      const digits = code.replace(/\D/g, '');
+      if (digits) void sync.verifyCode(digits);
+    };
     return (
-      <div className={styles.panel}>
+      <form className={styles.panel} onSubmit={submitCode}>
         <p role="status" className={styles.status}>
-          Check {sync.linkEmail} for a sign-in link from 学海 (sent by Supabase). Open it on any device you want to sync; this page signs in by itself.
+          Email sent to {sync.linkEmail}. Open the link on this device, or type the code from the email here.
         </p>
-        <button type="button" className="btn btn--quiet" onClick={sync.cancelLink}>Use a different email</button>
-      </div>
+        <p className={styles.note}>A link signs in whichever browser opens it, so if you read your email somewhere else, use the code.</p>
+        <div className={styles.row}>
+          <label htmlFor={`${id}-code`} className={styles.label}>Code from the email</label>
+          <input id={`${id}-code`} className={`${styles.input} ${styles.code}`} value={code} onChange={(e) => setCode(e.target.value)}
+            inputMode="numeric" autoComplete="one-time-code" placeholder="123456" maxLength={14} required />
+          <button type="submit" className="btn btn--primary">Sign in</button>
+        </div>
+        {sync.codeError && <p role="alert" className={styles.status} data-state="error">{sync.codeError}</p>}
+        <button type="button" className={`btn btn--quiet ${styles.secondary}`} onClick={sync.cancelLink}>Use a different email</button>
+      </form>
     );
   }
 

@@ -9,6 +9,8 @@ export interface SyncBackend {
   /** Called whenever someone signs in or out (e.g. after opening the email link). */
   onSignIn(cb: (user: SyncUser | null) => void): () => void;
   sendLink(email: string): Promise<void>;
+  /** Signs this device in with the one-time code printed in the same email (for when the link opened elsewhere). */
+  verifyCode(email: string, code: string): Promise<void>;
   signOut(): Promise<void>;
   pull(user: SyncUser): Promise<AppState | null>;
   push(user: SyncUser, state: AppState): Promise<void>;

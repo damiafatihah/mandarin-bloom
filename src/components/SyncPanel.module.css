@@ -18,3 +18,5 @@
 @media (max-width: 480px) {
   .row { grid-template-columns: 1fr; grid-template-areas: 'label' 'input' 'button'; }
 }
+.code { letter-spacing: 0.3em; font-variant-numeric: tabular-nums; font-weight: 700; }
+.secondary { justify-self: start; }
