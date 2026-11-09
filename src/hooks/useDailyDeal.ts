@@ -5,7 +5,8 @@ import { dateKey } from '../lib/dates';
 
 /**
  * Keeps today's set of words in step with the settings, on any screen that shows the daily goal:
- * deals the day's words, and tops them up as soon as words-per-day is raised (lowering never removes any).
+ * deals the day's words, and tops them up as soon as words-per-day is raised. (Lowering is handled by the
+ * SET_WORDS_PER_DAY action, which drops untouched words and keeps the ones already done.)
  */
 export function useDailyDeal() {
   const { state, dispatch } = useStore();
