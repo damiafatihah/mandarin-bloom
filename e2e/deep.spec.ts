@@ -366,3 +366,50 @@ test('My words: reached from Me, filters and search work, rows open the word pag
   await page.getByRole('link', { name: 'See Already knew' }).click();
   await expect(page.getByRole('button', { name: 'Already knew 1' })).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('changing levels mid-way: Today swaps untouched words, half-done Challenge and Practice carry on unchanged', async ({ page }) => {
+  await onboard(page, '5'); // HSK 4–5
+  const cards = page.getByRole('article');
+  const doneWord = await cards.nth(0).getAttribute('aria-label');
+  await cards.nth(0).getByRole('button', { name: 'Teach me' }).click();
+
+  const q = () => page.getByRole('region', { name: /^Question \d+ of \d+$/ });
+  const answerTwo = async () => {
+    for (let i = 0; i < 2; i++) {
+      await page.locator('[data-choice]').first().click();
+      await page.getByRole('button', { name: 'Next question' }).click();
+    }
+    await expect(q()).toHaveAccessibleName(/^Question 3 of/); // wait for question 3 before reading it
+  };
+  // half a challenge
+  await page.getByRole('link', { name: /Challenge/ }).first().click();
+  await page.getByRole('button', { name: 'Begin' }).click();
+  await answerTwo();
+  const challengePrompt = (await q().textContent())!;
+  // half a practice
+  await page.getByRole('link', { name: /Practice/ }).first().click();
+  await expect(page).toHaveURL(/\/practice$/);
+  await page.getByRole('button', { name: /^Start/ }).click();
+  await answerTwo();
+  const practicePrompt = (await q().textContent())!;
+
+  // HSK 4–5 → HSK 1–3
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  await page.getByRole('button', { name: /HSK 1–3/ }).click();
+  await page.getByRole('button', { name: /HSK 4 / }).click();
+  await page.getByRole('button', { name: /HSK 5/ }).click();
+
+  await page.getByRole('link', { name: /Challenge/ }).first().click();
+  await expect(page).toHaveURL(/\/challenge$/);
+  await expect(q()).toHaveAccessibleName(/^Question 3 of/);
+  await expect(q()).toHaveText(challengePrompt);
+  await page.getByRole('link', { name: /Practice/ }).first().click();
+  await expect(page).toHaveURL(/\/practice$/);
+  await expect(page.getByRole('button', { name: 'End practice' })).toBeVisible();
+  await expect(q()).toHaveText(practicePrompt);
+
+  await page.getByRole('link', { name: /Today/ }).first().click();
+  await expect(cards).toHaveCount(5);
+  await expect(cards.nth(0)).toHaveAttribute('aria-label', doneWord!);
+  for (const i of [1, 2, 3, 4]) await expect(cards.nth(i).getByText(/HSK [123]$/)).toBeVisible();
+});

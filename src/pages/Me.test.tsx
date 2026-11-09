@@ -122,3 +122,10 @@ it('links to My words, and each word stat opens the matching filter', () => {
   expect(screen.getByRole('link', { name: 'See Mastered' })).toHaveAttribute('href', '/words?filter=mastered');
   expect(screen.getByRole('link', { name: 'See Already knew' })).toHaveAttribute('href', '/words?filter=known');
 });
+
+it('the levels note says what changing levels does on each page', () => {
+  renderMe();
+  expect(screen.getByText(/untouched words from levels you turn off/)).toHaveTextContent(
+    'Today: untouched words from levels you turn off are swapped for words from your new levels. A challenge or practice you’ve started keeps its questions; the next one uses your new levels. Reviews always include all your words.',
+  );
+});

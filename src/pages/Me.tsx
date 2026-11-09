@@ -123,7 +123,7 @@ export default function Me() {
         <h2 id="levels-h"><span className="zh-title" lang="zh">级别</span> <span className="en-sub">Levels</span></h2>
         <LevelPicker value={state.settings.levels} onChange={(levels) =>
           pool ? dispatch({ type: 'SET_LEVELS', levels, today, pool }) : set({ levels })} />
-        <p className={styles.note}>Today’s untouched words from levels you turn off are swapped for words from your new levels.</p>
+        <p className={styles.note}>Today: untouched words from levels you turn off are swapped for words from your new levels. A challenge or practice you’ve started keeps its questions; the next one uses your new levels. Reviews always include all your words.</p>
       </section>
 
       <section className={styles.section} aria-labelledby="display-h">
