@@ -4,6 +4,7 @@ import type { HskWord } from '../lib/types';
 import { levelLabel } from '../lib/levels';
 import { Landscape } from './art/Scenery';
 import { SpeakButton } from './SpeakButton';
+import { Example } from './Example';
 import { ToneText } from './ToneText';
 import { ArrowRight, Check } from './icons';
 import styles from './WordCard.module.css';
@@ -18,9 +19,11 @@ type Props = {
   onUndo: () => void;
   toneColors: boolean;
   speechRate: number;
+  /** an example sentence [chinese, english], shown once the word is learnt */
+  example?: [string, string];
 };
 
-export function WordCard({ word, status, onTeach, onKnown, onUndo, toneColors, speechRate }: Props) {
+export function WordCard({ word, status, onTeach, onKnown, onUndo, toneColors, speechRate, example }: Props) {
   const revealed = status !== 'new';
   return (
     <article className={styles.card} data-status={status} aria-label={word.s}>
@@ -53,6 +56,7 @@ export function WordCard({ word, status, onTeach, onKnown, onUndo, toneColors, s
           {word.c.length > 0 && (
             <p className={styles.mw}>Measure word <span lang="zh" className={styles.mwHan}>{word.c.join('、')}</span></p>
           )}
+          {example && <Example zh={example[0]} en={example[1]} word={word.s} rate={speechRate} compact />}
           <Link className={styles.more} to={`/word/${encodeURIComponent(word.s)}`}>More about {word.s}<ArrowRight /></Link>
         </div>
       )}

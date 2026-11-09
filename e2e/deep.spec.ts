@@ -413,3 +413,21 @@ test('changing levels mid-way: Today swaps untouched words, half-done Challenge 
   await expect(cards.nth(0)).toHaveAttribute('aria-label', doneWord!);
   for (const i of [1, 2, 3, 4]) await expect(cards.nth(i).getByText(/HSK [123]$/)).toBeVisible();
 });
+
+test('example sentences: on a learnt card on Today and on the word page, simplified only', async ({ page }) => {
+  await onboard(page, '5');
+  const card = page.getByRole('article').first();
+  await card.getByRole('button', { name: 'Teach me' }).click();
+  const hanzi = (await card.getAttribute('aria-label'))!;
+  const fig = card.locator('figure');
+  await expect(fig).toBeVisible();
+  await expect(fig.locator('mark').first()).toHaveText(hanzi);
+  await expect(fig.getByRole('button', { name: 'Hear the sentence' })).toBeVisible();
+
+  await page.goto('/word/' + encodeURIComponent('环境'));
+  const section = page.getByRole('region', { name: /Example sentences/ });
+  await expect(section.locator('figure')).toHaveCount(3);
+  await expect(section.locator('figure').first()).toContainText('环境');
+  const text = await section.textContent();
+  expect(text).not.toMatch(/[們這個來說時會對過還後裡麼樣點國學問題語開關見頭車東電話買賣書愛聽讀寫邊錢長門間氣體當發現經應實與從難歡]/);
+});

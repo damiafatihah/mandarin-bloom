@@ -158,6 +158,7 @@ export default function Me() {
         <p className={styles.note}>
           Dictionary: <a href="https://www.mdbg.net/chinese/dictionary?page=cc-cedict">CC-CEDICT</a> (CC BY-SA 4.0).
           HSK 3.0 word lists: <a href="https://github.com/drkameleon/complete-hsk-vocabulary">complete-hsk-vocabulary</a> (MIT).
+          Example sentences: <a href="https://tatoeba.org">Tatoeba</a> (CC BY 2.0 FR).
         </p>
       </section>
     </div>

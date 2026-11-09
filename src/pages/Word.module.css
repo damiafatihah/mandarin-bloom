@@ -42,3 +42,5 @@
   border-radius: var(--radius-pill); background: var(--brand-soft); color: var(--brand); font-weight: 700;
 }
 .notFound { color: var(--ink-2); text-align: center; }
+
+.examples { display: grid; gap: 10px; }

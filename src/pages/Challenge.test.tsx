@@ -6,9 +6,14 @@ import { STORAGE_KEY } from '../state/storage';
 import { makeState } from '../test/fixtures';
 import Challenge from './Challenge';
 
-vi.mock('../data/resources', async () => {
+vi.mock('../data/resources', async (importOriginal) => {
   const { POOL } = await import('../test/fixtures');
-  return { useHsk: () => ({ data: POOL, error: null }), useCedict: () => ({ data: null, error: null }) };
+  return {
+    ...(await importOriginal<typeof import('../data/resources')>()),
+    useHsk: () => ({ data: POOL, error: null }),
+    useCedict: () => ({ data: null, error: null }),
+    useExamples: () => ({ data: null, error: null }),
+  };
 });
 
 beforeEach(() => {

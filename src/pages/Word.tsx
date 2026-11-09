@@ -1,11 +1,12 @@
 import { useMemo, type CSSProperties } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useStore } from '../state/store';
-import { useCedict, useHsk } from '../data/resources';
+import { examplesFor, useCedict, useExamples, useHsk } from '../data/resources';
 import { dateKey } from '../lib/dates';
 import { levelLabel } from '../lib/levels';
 import { Landscape, PlumBranch } from '../components/art/Scenery';
 import { SpeakButton } from '../components/SpeakButton';
+import { Example } from '../components/Example';
 import { ToneText } from '../components/ToneText';
 import { Bookmark, Check, ChevronLeft } from '../components/icons';
 import { Loading, LoadError } from '../components/Status';
@@ -19,6 +20,7 @@ export default function Word() {
   const hsk = useMemo(() => pool?.find((w) => w.s === hanzi || w.t === hanzi), [pool, hanzi]);
   const { data: cedict } = useCedict(!!pool && (!hsk || hsk.poly));
   const extra = useMemo(() => cedict?.filter((e) => e.s === hanzi || e.t === hanzi) ?? [], [cedict, hanzi]);
+  const { data: examples } = useExamples();
   const today = dateKey();
   const { toneColors, speechRate } = state.settings;
 
@@ -64,6 +66,15 @@ export default function Word() {
         <h2 id="meanings-h"><span className="zh-title" lang="zh">释义</span> <span className="en-sub">Meanings</span></h2>
         <ul className={styles.meanings}>{main.m.map((m, i) => <li key={i}>{m}</li>)}</ul>
       </section>
+
+      {hsk && examplesFor(examples, hsk.s).length > 0 && (
+        <section className={styles.section} aria-labelledby="examples-h">
+          <h2 id="examples-h"><span className="zh-title" lang="zh">例句</span> <span className="en-sub">Example sentences</span></h2>
+          <div className={styles.examples}>
+            {examplesFor(examples, hsk.s).map(([zh, en]) => <Example key={zh} zh={zh} en={en} word={hsk.s} rate={speechRate} />)}
+          </div>
+        </section>
+      )}
 
       {others.length > 0 && (
         <section className={styles.section} aria-labelledby="readings-h">

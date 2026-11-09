@@ -4,9 +4,14 @@ import { expect, it, vi } from 'vitest';
 import { StoreProvider } from '../state/store';
 import Me from './Me';
 
-vi.mock('../data/resources', async () => {
+vi.mock('../data/resources', async (importOriginal) => {
   const { POOL } = await import('../test/fixtures');
-  return { useHsk: () => ({ data: POOL, error: null }), useCedict: () => ({ data: null, error: null }) };
+  return {
+    ...(await importOriginal<typeof import('../data/resources')>()),
+    useHsk: () => ({ data: POOL, error: null }),
+    useCedict: () => ({ data: null, error: null }),
+    useExamples: () => ({ data: null, error: null }),
+  };
 });
 
 function renderMe() {

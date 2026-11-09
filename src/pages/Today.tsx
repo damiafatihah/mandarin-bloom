@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import type { HskWord } from '../lib/types';
 import { useStore } from '../state/store';
 import { useDailyDeal } from '../hooks/useDailyDeal';
+import { examplesFor, useExamples } from '../data/resources';
 import { streak } from '../lib/dates';
 import { dayProgress, goalSummary, selectNewWords } from '../lib/daily';
 import { greetingFor } from '../lib/greeting';
@@ -19,6 +20,7 @@ const zhDate = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric',
 export default function Today() {
   const { state, dispatch } = useStore();
   const { pool, error, today } = useDailyDeal();
+  const { data: examples } = useExamples(); // optional: cards simply show no sentence until it loads
   const { wordsPerDay, toneColors, speechRate } = state.settings;
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -123,6 +125,7 @@ export default function Today() {
         <div className={styles.words} ref={listRef} data-carousel>
           {words.map((w) => (
             <WordCard key={w.s} word={w} status={statusOf(w.s)} toneColors={toneColors} speechRate={speechRate}
+              example={examplesFor(examples, w.s)[0]}
               onTeach={() => choose(w.s, 'TEACH')}
               onKnown={() => choose(w.s, 'MARK_KNOWN')}
               onUndo={() => dispatch({ type: 'UNDO_DAILY', word: w.s, today })} />

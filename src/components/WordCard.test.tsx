@@ -1,8 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
-import { expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { WordCard, type CardStatus } from './WordCard';
 import { POOL } from '../test/fixtures';
+
+// jsdom has no speech engine; a stub makes the speak buttons render.
+beforeAll(() => {
+  Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { speak: () => {}, cancel: () => {}, getVoices: () => [], addEventListener: () => {}, removeEventListener: () => {} } });
+});
+afterAll(() => { delete (window as { speechSynthesis?: unknown }).speechSynthesis; });
 
 const word = POOL.find((w) => w.s === '犹豫')!;
 function setup(status: CardStatus) {
@@ -43,4 +49,18 @@ it('known: shows "Already knew" with the meaning, and Undo', () => {
 it('never shows traditional characters', () => {
   setup('taught');
   expect(screen.queryByText('猶豫')).not.toBeInTheDocument();
+});
+
+it('taught: shows an example sentence when one is given; new cards never do', () => {
+  const ex: [string, string] = ['他犹豫了一下。', 'He hesitated for a moment.'];
+  const { unmount } = render(
+    <MemoryRouter><WordCard word={word} status="taught" example={ex} onTeach={vi.fn()} onKnown={vi.fn()} onUndo={vi.fn()} toneColors speechRate={0.9} /></MemoryRouter>,
+  );
+  expect(screen.getByText('He hesitated for a moment.')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Hear the sentence' })).toBeInTheDocument();
+  unmount();
+  render(
+    <MemoryRouter><WordCard word={word} status="new" example={ex} onTeach={vi.fn()} onKnown={vi.fn()} onUndo={vi.fn()} toneColors speechRate={0.9} /></MemoryRouter>,
+  );
+  expect(screen.queryByText('He hesitated for a moment.')).not.toBeInTheDocument();
 });
