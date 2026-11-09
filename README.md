@@ -34,7 +34,7 @@ The name comes from the idiom 学海无涯, "the sea of learning has no shore".
 
 **Simplified Chinese only.** Traditional characters are never shown.
 
-**Your progress stays on your device.** There's no account and no server. Progress is saved in the browser, so each device keeps its own progress for now.
+**Your progress is yours.** It's saved in your browser and works without an account. If you want, sign in with your email (a sign-in link, no password) on **Me → 同步 Sync** to keep your phone and laptop in step.
 
 ## Built with
 
@@ -43,7 +43,7 @@ The name comes from the idiom 学海无涯, "the sea of learning has no shore".
 - [vite-plugin-pwa](https://vite-pwa-org.netlify.app) for install and offline support
 - The browser's built-in speech engine (Web Speech API) for pronunciation
 - [Vitest](https://vitest.dev) for unit tests; [Playwright](https://playwright.dev) for browser tests on phone, tablet and laptop sizes
-- Hosted on [Netlify](https://www.netlify.com)
+- Hosted on [Netlify](https://www.netlify.com); optional sync via [Supabase](https://supabase.com)
 
 ## Run it on your computer
 
@@ -63,6 +63,18 @@ npm run dev          # then open http://localhost:5173
 | `npm run build` | Make the production version in `dist/` |
 | `npm run data` | Rebuild the word data in `public/data/` from the original sources (only needed to update the data) |
 
+## Sync (optional)
+
+Sync uses [Supabase](https://supabase.com) for email sign-in and a single `progress` table (one row per person, protected by row level security).
+
+1. Create a Supabase project, then run [`supabase/progress.sql`](supabase/progress.sql) in its SQL Editor.
+2. In **Authentication → URL Configuration**, set the Site URL to your site and add `http://localhost:5173` as a redirect URL.
+3. Copy `.env.example` to `.env.local` and fill in the project URL and the **anon public** key.
+
+Without these settings the app works exactly the same, just without the Sync section.
+
+How it works: each sync pulls the cloud copy, combines it with this device's progress (nothing is overwritten: words in review, known words and days are combined; per word, the copy with more reviews wins; the most recently changed settings win), and saves the result back. See `src/sync/merge.ts`.
+
 ## Deploying
 
 ```bash
@@ -80,6 +92,7 @@ src/
   components/   reusable pieces (word card, quiz, search box, seal, scenery…)
   lib/          the rules, with no screen code: daily words, quizzes, reviews, search, pinyin, speech
   state/        everything the app remembers, and the only place it changes (reducer.ts)
+  sync/         email sign-in and combining progress between devices (Supabase)
   data/         loads the word lists and example sentences
   hooks/        small shared helpers for pages
   styles/       colours, fonts, sizes

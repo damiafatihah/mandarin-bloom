@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { StoreProvider } from './state/store';
+import { SyncProvider } from './sync/SyncProvider';
 import { AppShell } from './components/AppShell';
 import { RequireOnboarded } from './components/RequireOnboarded';
 import Welcome from './pages/Welcome';
@@ -14,6 +15,7 @@ import MyWords from './pages/MyWords';
 export default function App() {
   return (
     <StoreProvider>
+      <SyncProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/welcome" element={<Welcome />} />
@@ -29,6 +31,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      </SyncProvider>
     </StoreProvider>
   );
 }

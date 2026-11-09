@@ -13,11 +13,14 @@ import { PageHeader } from '../components/PageHeader';
 import { Seal } from '../components/Seal';
 import { dayProgress, goalSummary } from '../lib/daily';
 import { useDailyDeal } from '../hooks/useDailyDeal';
+import { SyncPanel } from '../components/SyncPanel';
+import { useSync } from '../sync/SyncProvider';
 import styles from './Me.module.css';
 
 export default function Me() {
   const { state, dispatch } = useStore();
   const { today, pool } = useDailyDeal();
+  const sync = useSync();
   const cards = Object.values(state.cards);
   const set = (patch: Partial<Settings>) => dispatch({ type: 'UPDATE_SETTINGS', patch });
   const [open, setOpen] = useState<string | null>(null);
@@ -62,7 +65,7 @@ export default function Me() {
 
   return (
     <div className={styles.page}>
-      <PageHeader zh="我的" en="Me" sub="Your progress and settings, saved in this browser." />
+      <PageHeader zh="我的" en="Me" sub={sync.user ? 'Your progress and settings, synced to your account.' : 'Your progress and settings, saved in this browser.'} />
 
       <section className={styles.goal} aria-labelledby="goal-h">
         <svg className={styles.ring} viewBox="0 0 80 80" aria-hidden="true">
@@ -113,6 +116,13 @@ export default function Me() {
         <ChevronRight />
       </Link>
 
+      {sync.status !== 'off' && (
+        <section className={styles.section} aria-labelledby="sync-h">
+          <h2 id="sync-h"><span className="zh-title" lang="zh">同步</span> <span className="en-sub">Sync</span></h2>
+          <SyncPanel />
+        </section>
+      )}
+
       <section className={styles.section} aria-labelledby="daily-h">
         <h2 id="daily-h"><span className="zh-title" lang="zh">每日新词</span> <span className="en-sub">Daily words</span></h2>
         <WordsPerDayPicker value={state.settings.wordsPerDay} onChange={(n) => dispatch({ type: 'SET_WORDS_PER_DAY', n, today })} />
@@ -149,7 +159,9 @@ export default function Me() {
         <h2 id="data-h"><span className="zh-title" lang="zh">数据</span> <span className="en-sub">Your data</span></h2>
         <p className={styles.note}>Progress is saved in this browser only.</p>
         <button type="button" className="btn btn--quiet" onClick={() => {
-          if (window.confirm('Erase all progress? Your settings are kept.')) dispatch({ type: 'RESET' });
+          if (window.confirm(sync.user
+            ? 'Erase all progress on all your synced devices? Your settings are kept.'
+            : 'Erase all progress? Your settings are kept.')) dispatch({ type: 'RESET' });
         }}>Reset progress</button>
       </section>
 

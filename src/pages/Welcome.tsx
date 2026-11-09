@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { useStore } from '../state/store';
 import { Landscape } from '../components/art/Scenery';
 import { Backdrop } from '../components/Backdrop';
@@ -7,6 +7,8 @@ import { Seal } from '../components/Seal';
 import { LevelPicker } from '../components/LevelPicker';
 import { WordsPerDayPicker } from '../components/WordsPerDayPicker';
 import { ChevronRight } from '../components/icons';
+import { SyncPanel } from '../components/SyncPanel';
+import { useSync } from '../sync/SyncProvider';
 import styles from './Welcome.module.css';
 
 export default function Welcome() {
@@ -15,6 +17,11 @@ export default function Welcome() {
   const [step, setStep] = useState(0);
   const [wordsPerDay, setWordsPerDay] = useState(state.settings.wordsPerDay);
   const [levels, setLevels] = useState(state.settings.levels);
+  const sync = useSync();
+  const [signingIn, setSigningIn] = useState(false);
+
+  // Signing in on a new device brings your progress (and onboarding) from the cloud.
+  if (state.onboarded) return <Navigate to="/" replace />;
 
   function finish() {
     dispatch({ type: 'COMPLETE_ONBOARDING', settings: { wordsPerDay, levels } });
@@ -39,6 +46,15 @@ export default function Welcome() {
               </div>
               <h1 className={styles.title}>Sharpen the Mandarin you already have</h1>
               <p className={styles.lead}>A few new words a day, one ten-question challenge, and a dictionary in your pocket. Skip what you know and spend your time on what you don’t.</p>
+              {sync.status !== 'off' && (
+                <div className={styles.signIn}>
+                  {signingIn ? <SyncPanel compact /> : (
+                    <p>Already use 学海 on another device?{' '}
+                      <button type="button" className={styles.signInLink} onClick={() => setSigningIn(true)}>Sign in to bring your progress</button>
+                    </p>
+                  )}
+                </div>
+              )}
             </>
           )}
           {step === 1 && (

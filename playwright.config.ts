@@ -6,8 +6,9 @@ export default defineConfig({
   use: { baseURL: 'http://localhost:4173' },
   webServer: [
     {
-      // production build: what users get
-      command: 'npm run build && npm run preview -- --port 4173 --strictPort',
+      // production build (what users get), except sync uses a stand-in cloud the tests control.
+      // Built into dist-e2e so the test build can never be deployed by mistake.
+      command: 'npm run build:e2e && npx vite preview --outDir dist-e2e --port 4173 --strictPort',
       url: 'http://localhost:4173',
       reuseExistingServer: true,
       timeout: 180_000,

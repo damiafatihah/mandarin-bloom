@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { reducer } from './reducer';
+import { reducer, rootReducer } from './reducer';
 import { makeState, POOL, TODAY } from '../test/fixtures';
 
 const fresh = () => reducer(makeState(), { type: 'ENSURE_DAY', today: TODAY, pool: POOL });
@@ -271,5 +271,28 @@ describe('practice sessions are saved and resumable', () => {
   it('answers without a session are ignored', () => {
     const s = makeState();
     expect(reducer(s, { type: 'ANSWER_PRACTICE', index: 0, choice: 0, word: '书', correct: false, today: TODAY })).toBe(s);
+  });
+});
+
+describe('rootReducer: stamps that let syncing pick the newest settings and resets', () => {
+  it('a settings change records when it happened; other changes don’t', () => {
+    const before = Date.now();
+    const s = rootReducer(makeState(), { type: 'UPDATE_SETTINGS', patch: { toneColors: false } });
+    expect(s.settingsAt).toBeGreaterThanOrEqual(before);
+    const t = rootReducer({ ...s, settingsAt: 5 }, { type: 'TEACH', word: '书', today: TODAY });
+    expect(t.settingsAt).toBe(5);
+  });
+  it('Reset all progress moves the epoch on and keeps settings', () => {
+    const s = rootReducer({ ...makeState({ known: ['河'] }), settingsAt: 7, epoch: 2 }, { type: 'RESET' });
+    expect(s.epoch).toBe(3);
+    expect(s.settingsAt).toBe(7);
+    expect(s.known).toEqual([]);
+  });
+  it('MERGE_REMOTE adds the other device’s words, and returns the same object when nothing is new', () => {
+    const s = makeState({ known: ['河'] });
+    const m = rootReducer(s, { type: 'MERGE_REMOTE', remote: makeState({ known: ['金'] }) });
+    expect(m.known).toEqual(['河', '金']);
+    expect(m.settingsAt).toBeUndefined(); // merging is not a settings change
+    expect(rootReducer(m, { type: 'MERGE_REMOTE', remote: makeState({ known: ['金'] }) })).toBe(m);
   });
 });

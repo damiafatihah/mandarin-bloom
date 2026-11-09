@@ -62,4 +62,8 @@ export type AppState = {
   cards: Record<string, Card>;
   days: Record<string, DayRecord>;
   practice?: PracticeRun;
+  /** When settings last changed (ms since 1970), so syncing keeps the most recent settings. */
+  settingsAt?: number;
+  /** Goes up by one on "Reset all progress"; syncing lets the newer reset win over older progress. */
+  epoch?: number;
 };

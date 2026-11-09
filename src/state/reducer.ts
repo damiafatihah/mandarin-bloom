@@ -1,4 +1,5 @@
 import type { AppState, DailyChoice, DayRecord, HskWord, PracticeRun, Settings } from '../lib/types';
+import { mergeStates } from '../sync/merge';
 import { addDays } from '../lib/dates';
 import { gradeCard, newCard } from '../lib/srs';
 import { selectNewWords } from '../lib/daily';
@@ -25,6 +26,7 @@ export type Action =
   | { type: 'ADVANCE_PRACTICE'; index: number }
   | { type: 'FINISH_PRACTICE' }
   | { type: 'END_PRACTICE' }
+  | { type: 'MERGE_REMOTE'; remote: AppState }
   | { type: 'RESET' };
 
 /** Saved answers with `choice` at `index`, or null if that question was already answered (score once). */
@@ -179,7 +181,28 @@ export function reducer(s: AppState, a: Action): AppState {
       delete next.practice;
       return next;
     }
+    case 'MERGE_REMOTE': {
+      const merged = mergeStates(s, a.remote);
+      return JSON.stringify(merged) === JSON.stringify(s) ? s : merged;
+    }
     case 'RESET':
       return { ...initialState, settings: s.settings, onboarded: s.onboarded };
   }
+}
+
+/**
+ * The reducer the app uses: `reducer` plus the two stamps syncing needs: when settings last changed,
+ * and a counter that goes up on "Reset all progress" (so a reset wins over older progress on other devices).
+ */
+export function rootReducer(s: AppState, a: Action): AppState {
+  const next = reducer(s, a);
+  if (next === s || a.type === 'MERGE_REMOTE') return next;
+  let out = next;
+  if (a.type === 'RESET') {
+    out = { ...out, epoch: (s.epoch ?? 0) + 1 };
+    if (s.settingsAt) out.settingsAt = s.settingsAt;
+  } else if (next.settings !== s.settings) {
+    out = { ...out, settingsAt: Date.now() };
+  }
+  return out;
 }
