@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import type { Settings } from '../lib/types';
 import { useStore } from '../state/store';
 import { streak } from '../lib/dates';
@@ -7,7 +8,7 @@ import { speak, speechSupported } from '../lib/speech';
 import { LevelPicker } from '../components/LevelPicker';
 import { WordsPerDayPicker } from '../components/WordsPerDayPicker';
 import { VoicePicker } from '../components/VoicePicker';
-import { Info } from '../components/icons';
+import { ChevronRight, Info } from '../components/icons';
 import { PageHeader } from '../components/PageHeader';
 import { Seal } from '../components/Seal';
 import { dayProgress, goalSummary } from '../lib/daily';
@@ -20,7 +21,7 @@ export default function Me() {
   const cards = Object.values(state.cards);
   const set = (patch: Partial<Settings>) => dispatch({ type: 'UPDATE_SETTINGS', patch });
   const [open, setOpen] = useState<string | null>(null);
-  const stats = [
+  const stats: { label: string; value: number; info: string; to?: string }[] = [
     {
       label: 'Day streak',
       value: streak(Object.keys(state.days).filter((k) => state.days[k].challenge), today),
@@ -29,20 +30,24 @@ export default function Me() {
     {
       label: 'Words in review',
       value: cards.length,
+      to: '/words?filter=review',
       info: 'Words the app is teaching you and will quiz you on again later: words you tapped “Teach me” on, got wrong in a quiz, or added from the dictionary.',
     },
     {
       label: 'Mastered',
       value: cards.filter((c) => c.box >= MASTERED_BOX).length,
+      to: '/words?filter=mastered',
       info: 'Words you’ve answered correctly 4 times in a row. They now come back only every 15 days or more, and a wrong answer sends a word back to the start. Mastered words are part of Words in review, not extra.',
     },
     {
       label: 'Already knew',
       value: state.known.length,
+      to: '/words?filter=known',
       info: 'Words you skipped with “I know it”. They’re never quizzed. If you get one wrong in a quiz later, it moves to Words in review.',
     },
   ];
   const openStat = stats.find((s) => s.label === open);
+  const myWordCount = cards.length + state.known.filter((w) => !state.cards[w]).length;
   const goal = goalSummary(dayProgress(state.days[today], state.settings.wordsPerDay));
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
   const goalNote = !goal.met
@@ -84,7 +89,10 @@ export default function Me() {
                   <Info />
                 </button>
               </dt>
-              <dd>{s.value}</dd>
+              <dd>
+                <span data-stat-value>{s.value}</span>
+                {s.to && <Link to={s.to} className={styles.statLink} aria-label={`See ${s.label}`}>See<ChevronRight /></Link>}
+              </dd>
             </div>
           ))}
         </dl>
@@ -95,6 +103,15 @@ export default function Me() {
           </section>
         )}
       </div>
+
+      <Link to="/words" className={styles.myWords}>
+        <span className={styles.myWordsZh} lang="zh">我的词语</span>
+        <span className={styles.myWordsText}>
+          <strong>My words</strong>
+          <span>{myWordCount} word{myWordCount === 1 ? '' : 's'} · search and filter everything you’ve learnt</span>
+        </span>
+        <ChevronRight />
+      </Link>
 
       <section className={styles.section} aria-labelledby="daily-h">
         <h2 id="daily-h"><span className="zh-title" lang="zh">每日新词</span> <span className="en-sub">Daily words</span></h2>

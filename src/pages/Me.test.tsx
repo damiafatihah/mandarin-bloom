@@ -113,3 +113,12 @@ it('raising words-per-day on Me updates the goal right away (no need to visit To
   // the 5 extra words were really dealt for today
   expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).days[today].words).toHaveLength(10);
 });
+
+it('links to My words, and each word stat opens the matching filter', () => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(makeState({ cards: { 书: { box: 5, due: '2099-01-01', seen: 6, correct: 6 } }, known: ['河'] })));
+  renderMe();
+  expect(screen.getByRole('link', { name: /My words.*2 words/ })).toHaveAttribute('href', '/words');
+  expect(screen.getByRole('link', { name: 'See Words in review' })).toHaveAttribute('href', '/words?filter=review');
+  expect(screen.getByRole('link', { name: 'See Mastered' })).toHaveAttribute('href', '/words?filter=mastered');
+  expect(screen.getByRole('link', { name: 'See Already knew' })).toHaveAttribute('href', '/words?filter=known');
+});

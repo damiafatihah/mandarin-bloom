@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 import { useStore } from '../state/store';
 import { useCedict, useHsk } from '../data/resources';
 import { useDebounced } from '../hooks/useDebounced';
 import { hskToEntry, searchDict } from '../lib/search';
 import { levelLabel } from '../lib/levels';
-import { ToneText } from '../components/ToneText';
+import { WordRow } from '../components/WordRow';
 import { PageHeader } from '../components/PageHeader';
-import { ChevronRight, Search } from '../components/icons';
+import { SearchBox } from '../components/SearchBox';
 import styles from './Dictionary.module.css';
 
 const EXAMPLES = ['犹豫', 'youyu', 'hesitate', '一帆风顺'];
@@ -32,12 +32,8 @@ export default function Dictionary() {
   return (
     <div className={styles.page}>
       <PageHeader zh="词典" en="Dictionary" sub="Search about 120,000 words by 汉字, pinyin (tones optional) or English." />
-      <form role="search" className={styles.form} onSubmit={(e) => e.preventDefault()}>
-        <label htmlFor="dict-q" className="visually-hidden">Search in Chinese, pinyin or English</label>
-        <span className={styles.searchIcon}><Search /></span>
-        <input id="dict-q" name="q" type="search" className={styles.input} value={input} onChange={(e) => setInput(e.target.value)}
-          placeholder="搜索 · 汉字, pinyin or English…" autoComplete="off" autoCapitalize="off" spellCheck={false} enterKeyHint="search" />
-      </form>
+      <SearchBox id="dict-q" label="Search in Chinese, pinyin or English" value={input} onChange={setInput}
+        placeholder="搜索 · 汉字, pinyin or English…" />
       {!cedict && !error && <p className={styles.note} role="status">Loading the full dictionary (once, about 3 MB). Searching HSK words meanwhile.</p>}
       {error && <p className={styles.note} role="alert">The full dictionary didn’t load, so only HSK words are searchable.</p>}
       {!query && (
@@ -50,15 +46,8 @@ export default function Dictionary() {
       <ul className={styles.results}>
         {results.map((e, i) => (
           <li key={`${e.s}|${e.p}|${i}`}>
-            <Link to={`/word/${encodeURIComponent(e.s)}`} className={styles.row}>
-              <span className={styles.han} lang="zh">{e.s}</span>
-              <span className={styles.text}>
-                <ToneText pinyin={e.p} colored={settings.toneColors} className={styles.py} />
-                <span className={styles.def}>{e.m.slice(0, 3).join('; ')}</span>
-              </span>
-              {levels.has(e.s) && <span className={`tag ${styles.badge}`}>{levelLabel(levels.get(e.s)!)}</span>}
-              <span className={styles.chev}><ChevronRight /></span>
-            </Link>
+            <WordRow hanzi={e.s} pinyin={e.p} meanings={e.m} toneColors={settings.toneColors}
+              badge={levels.has(e.s) ? levelLabel(levels.get(e.s)!) : undefined} />
           </li>
         ))}
       </ul>

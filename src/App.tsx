@@ -9,6 +9,7 @@ import Practice from './pages/Practice';
 import Dictionary from './pages/Dictionary';
 import Word from './pages/Word';
 import Me from './pages/Me';
+import MyWords from './pages/MyWords';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
             <Route path="dictionary" element={<Dictionary />} />
             <Route path="word/:hanzi" element={<Word />} />
             <Route path="me" element={<Me />} />
+            <Route path="words" element={<MyWords />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

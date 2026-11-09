@@ -80,8 +80,8 @@ test('daily goal: both choices count, cards stay put, goal panel, optional learn
 
   // Me: only the 3 "Teach me" words are in review; the 2 "I know it" words are under Already knew
   await page.getByRole('link', { name: /Me/ }).first().click();
-  await expect(page.locator('dd').nth(1)).toHaveText('3');
-  await expect(page.locator('dd').nth(3)).toHaveText('2');
+  await expect(page.locator('dd [data-stat-value]').nth(1)).toHaveText('3');
+  await expect(page.locator('dd [data-stat-value]').nth(3)).toHaveText('2');
   expect(errors).toEqual([]);
 });
 
@@ -227,7 +227,7 @@ test('me: settings persist and change today; reset keeps settings', async ({ pag
   await expect(page.getByLabel('Colour pinyin by tone')).not.toBeChecked();
   page.once('dialog', (d) => d.accept());
   await page.getByRole('button', { name: 'Reset progress' }).click();
-  await expect(page.locator('dd').nth(1)).toHaveText('0');
+  await expect(page.locator('dd [data-stat-value]').nth(1)).toHaveText('0');
   await expect(page.getByLabel('Colour pinyin by tone')).not.toBeChecked();
   expect(errors).toEqual([]);
 });
@@ -336,4 +336,33 @@ test('finish 5, lower the goal to 3: Today keeps the 5 and says goal of 3 reache
   await expect(cards).toHaveCount(5);
   await expect(page.getByRole('region', { name: /Daily goal done/ })).toContainText('5 words done · daily goal of 3 reached, +2 extra');
   await expect(page.getByRole('button', { name: 'Learn 3 more' })).toBeVisible();
+});
+
+test('My words: reached from Me, filters and search work, rows open the word page', async ({ page }) => {
+  await onboard(page, '5');
+  const cards = page.getByRole('article');
+  const names = await cards.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')!));
+  await cards.nth(0).getByRole('button', { name: 'Teach me' }).click();
+  await cards.nth(1).getByRole('button', { name: 'Teach me' }).click();
+  await cards.nth(2).getByRole('button', { name: 'I know it' }).click();
+
+  await page.getByRole('link', { name: /Me/ }).first().click();
+  await page.getByRole('link', { name: /My words.*3 words/ }).click();
+  await expect(page).toHaveURL(/\/words$/);
+  await expect(page.getByRole('status')).toHaveText('Showing 3 words');
+  await page.getByRole('button', { name: 'Already knew 1' }).click();
+  await expect(page.getByRole('status')).toHaveText('Showing 1 word');
+  await expect(page.getByRole('link', { name: new RegExp(`^${names[2]}`) })).toBeVisible();
+  await page.getByRole('button', { name: 'In review 2' }).click();
+  await expect(page.getByText('Review tomorrow')).toHaveCount(2);
+
+  await page.getByRole('link', { name: new RegExp(`^${names[0]}`) }).click();
+  await expect(page).toHaveURL(/\/word\//);
+  await page.goBack();
+  await expect(page).toHaveURL(/filter=review/);
+  await expect(page.getByRole('button', { name: 'In review 2' })).toHaveAttribute('aria-pressed', 'true');
+
+  await page.goto('/me');
+  await page.getByRole('link', { name: 'See Already knew' }).click();
+  await expect(page.getByRole('button', { name: 'Already knew 1' })).toHaveAttribute('aria-pressed', 'true');
 });
