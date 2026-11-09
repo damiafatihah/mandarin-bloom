@@ -4,7 +4,7 @@ import type { HskWord } from '../lib/types';
 import { useStore } from '../state/store';
 import { useDailyDeal } from '../hooks/useDailyDeal';
 import { streak } from '../lib/dates';
-import { dayProgress, selectNewWords } from '../lib/daily';
+import { dayProgress, goalSummary, selectNewWords } from '../lib/daily';
 import { greetingFor } from '../lib/greeting';
 import { WordCard, type CardStatus } from '../components/WordCard';
 import { SealCalendar } from '../components/SealCalendar';
@@ -33,6 +33,7 @@ export default function Today() {
   const words = (day?.words ?? []).map((s) => byS.get(s)).filter((w): w is HskWord => !!w);
   const statusOf = (s: string): CardStatus => day?.handled?.[s] ?? 'new';
   const progress = dayProgress(day, wordsPerDay);
+  const goal = goalSummary(progress);
   const allDone = progress.total > 0 && progress.done === progress.total;
   const moreAvailable = allDone ? selectNewWords(pool, state, today, wordsPerDay).length : 0;
   const due = Object.values(state.cards).filter((c) => c.due <= today).length;
@@ -77,10 +78,14 @@ export default function Today() {
         </div>
         <div className={styles.bar} role="progressbar" aria-label="Today’s words"
           aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.done}>
-          {words.map((w) => <span key={w.s} data-state={statusOf(w.s)} />)}
+          {words.map((w, i) => (
+            <span key={w.s} data-state={statusOf(w.s)} data-goal-end={i === goal.target - 1 && progress.total > goal.target} />
+          ))}
         </div>
         {progress.goalMet && !allDone && (
-          <p className={styles.hint}><Check /> Daily goal of {progress.goal} done · these extra words are optional</p>
+          <p className={styles.hint}>
+            <Check /> Daily goal of {goal.target} done{goal.extraDone > 0 ? ` · +${goal.extraDone} extra` : ''} · the rest are optional
+          </p>
         )}
         {!progress.goalMet && (
           <p className={styles.hint}>Tap <b>Teach me</b> to learn a word, or <b>I know it</b> to skip it. Both count.</p>
@@ -93,9 +98,10 @@ export default function Today() {
             <div className={styles.goalBody}>
               <h2 id="goal-done-h"><span className="zh-title" lang="zh">今日完成</span> Daily goal done</h2>
               <p>
-                <strong>{progress.total} word{progress.total === 1 ? '' : 's'} today</strong>
-                {' · '}{progress.learned} learned · {progress.known} already knew
+                <strong>{progress.done} word{progress.done === 1 ? '' : 's'} done</strong>
+                {` · daily goal of ${goal.target} reached${goal.extraDone > 0 ? `, +${goal.extraDone} extra` : ''}`}
               </p>
+              <p className={styles.optional}>{progress.learned} learnt · {progress.known} already knew</p>
               <p className={styles.optional}>
                 {moreAvailable > 0
                   ? 'That’s today’s goal. Learning more is optional.'

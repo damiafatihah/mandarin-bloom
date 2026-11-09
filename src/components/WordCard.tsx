@@ -27,7 +27,7 @@ export function WordCard({ word, status, onTeach, onKnown, onUndo, toneColors, s
       <Landscape variant="card" seed={word.s} className={styles.hills} />
       <div className={styles.top}>
         <span className="tag"><span lang="zh">每日一词</span> · {levelLabel(word.l)}</span>
-        {status === 'taught' && <p className={styles.state}><Check /> Learned</p>}
+        {status === 'taught' && <p className={styles.state}><Check /> Learnt</p>}
         {status === 'known' && <p className={`${styles.state} ${styles.stateKnown}`}><Check /> Already knew</p>}
       </div>
       <div className={styles.head}>
